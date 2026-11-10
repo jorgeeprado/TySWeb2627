@@ -1,0 +1,24 @@
+# Archivos temporales y logs de servicios
+*.log
+*.pid
+
+# Repomix / AI dumps
+repomix-output.xml
+
+# Directorios de build Maven
+**/target/
+target/
+
+# Directorios de build y dependencias Node/Angular
+**/node_modules/
+node_modules/
+**/.angular/
+.angular/
+**/dist/
+dist/
+
+# Archivos de entorno y SO
+.DS_Store
+Thumbs.db
+*.swp
+*~
