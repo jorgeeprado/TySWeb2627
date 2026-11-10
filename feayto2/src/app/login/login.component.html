@@ -1,0 +1,268 @@
+<div class="auth-form-wrapper">
+
+  <!-- ======================= PASO 1: LOGIN NORMAL ======================= -->
+  @if (paso === 'login') {
+    <div class="form-title-group">
+      <div class="title-with-action">
+        <h3>Acceso a la Plataforma</h3>
+        <button type="button" class="btn-quick-fill" (click)="rellenarCredencialesPrueba('test@test.es', 'Clave123!')" title="Probar con usuario de prueba">
+          🧪 Probar cuenta
+        </button>
+      </div>
+      <p>Introduce tus credenciales de empleado municipal</p>
+    </div>
+
+    @if (successMessage) {
+      <div class="alert alert-success">
+        <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage }}</span>
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div class="alert-body">
+          <span>{{ errorMessage }}</span>
+          
+          @if (cuentaPendienteActivacion) {
+            <div class="quick-activate-banner">
+              <p>Tu cuenta fue registrada pero aún no está confirmada.</p>
+              <button type="button" class="btn-activate-inline" (click)="activarMiCuenta()" [disabled]="activando">
+                @if (activando) {
+                  <span class="spinner-small"></span>
+                  <span>Activando...</span>
+                } @else {
+                  <span>⚡ Activar Mi Cuenta Ahora (1 Clic)</span>
+                }
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <form (ngSubmit)="onLogin()" class="auth-form">
+      <div class="input-field">
+        <label for="login-email">Correo Electrónico (Institucional)</label>
+        <div class="input-container">
+          <svg class="field-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+          </svg>
+          <input
+            type="email"
+            id="login-email"
+            [(ngModel)]="email"
+            name="email"
+            required
+            placeholder="funcionario@ayuntamiento.es o test@test.es"
+            autocomplete="email">
+        </div>
+      </div>
+
+      <div class="input-field">
+        <div class="label-with-action">
+          <label for="login-pwd">Contraseña</label>
+        </div>
+        <div class="input-container">
+          <svg class="field-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+          </svg>
+          <input
+            type="password"
+            id="login-pwd"
+            [(ngModel)]="pwd"
+            name="pwd"
+            required
+            placeholder="••••••••••••"
+            autocomplete="current-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="loading || !email || !pwd">
+        @if (loading) {
+          <span class="spinner"></span>
+          <span>Verificando credenciales...</span>
+        } @else {
+          <span>Iniciar Sesión</span>
+          <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        }
+      </button>
+    </form>
+
+    <!-- Botón para activar 2FA (el usuario introduce su email y pulsa aquí) -->
+    <div class="twofa-setup-section">
+      <div class="twofa-divider"><span>O BIEN</span></div>
+      <p class="twofa-hint">¿Quieres vincular Google Authenticator a tu cuenta?</p>
+      <p class="twofa-hint-small">Introduce tu correo arriba y pulsa para generar el código QR.</p>
+      <button type="button" class="btn-secondary btn-2fa" (click)="onActivar2FA()" [disabled]="!email || loading">
+        <svg viewBox="0 0 20 20" fill="currentColor" class="icon-sm">
+          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        Activar Google Authenticator (2FA)
+      </button>
+    </div>
+  }
+
+  <!-- ============= PASO 2: CONFIGURAR 2FA (mostrar QR) =================== -->
+  @if (paso === 'setup2fa') {
+    <div class="form-title-group">
+      <div class="twofa-badge">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <h3>Código QR para Google Authenticator</h3>
+      <p>Escanea este código con la app en tu teléfono móvil</p>
+    </div>
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <div class="qr-container">
+      <div class="qr-image-wrapper">
+        <div class="qr-frame">
+          <qrcode
+            [qrdata]="qrUrl"
+            [width]="190"
+            [errorCorrectionLevel]="'M'"
+            [elementType]="'canvas'">
+          </qrcode>
+        </div>
+        <p class="qr-account-label">Cuenta: <strong>{{ emailTemporal }}</strong></p>
+        
+        @if (qrSecret) {
+          <div class="secret-key-box">
+            <span class="secret-label">Clave manual si no puedes escanear:</span>
+            <div class="secret-code-row">
+              <code class="secret-value">{{ qrSecret }}</code>
+              <button type="button" class="btn-copy" (click)="copiarSecreto()" title="Copiar clave">Copiar</button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="qr-steps">
+        <div class="step-item">
+          <span class="step-num">1</span>
+          <span>Abre <strong>Google Authenticator</strong> en tu móvil.</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">2</span>
+          <span>Pulsa el botón <strong>+</strong> y selecciona <strong>Escanear un código QR</strong>.</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">3</span>
+          <span>Apunta con la cámara al código de arriba e introduce los 6 dígitos.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-field">
+      <label for="codigo-2fa-setup">Introduce el código temporal (6 dígitos)</label>
+      <div class="input-container">
+        <svg class="field-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+        </svg>
+        <input
+          type="text"
+          id="codigo-2fa-setup"
+          [(ngModel)]="codigo2FA"
+          name="codigo2FA"
+          maxlength="6"
+          placeholder="Ej: 123456"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          class="center-code-input">
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" (click)="onVerificar2FA()" [disabled]="loading || codigo2FA.length !== 6">
+      @if (loading) {
+        <span class="spinner"></span>
+        <span>Verificando código...</span>
+      } @else {
+        <span>Verificar y Activar 2FA</span>
+        <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+      }
+    </button>
+
+    <button type="button" class="btn-link" (click)="volverAlLogin()">← Volver al inicio de sesión</button>
+  }
+
+  <!-- ============= PASO 3: VERIFICAR CÓDIGO 2FA (usuario ya configurado) = -->
+  @if (paso === 'verify2fa') {
+    <div class="form-title-group">
+      <div class="twofa-badge">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <h3>Verificación en Dos Pasos</h3>
+      <p>Introduce el código de <strong>Google Authenticator</strong> de tu teléfono</p>
+    </div>
+
+    @if (errorMessage) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <div class="twofa-verify-info">
+      <p>Abre <strong>Google Authenticator</strong> en tu móvil y consulta el código para <strong>EcoBikes Ayto ({{ emailTemporal }})</strong></p>
+    </div>
+
+    <div class="input-field">
+      <label for="codigo-2fa-verify">Código de 6 dígitos</label>
+      <div class="input-container">
+        <svg class="field-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+        </svg>
+        <input
+          type="text"
+          id="codigo-2fa-verify"
+          [(ngModel)]="codigo2FA"
+          name="codigo2FA"
+          maxlength="6"
+          placeholder="123456"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          class="center-code-input"
+          autofocus>
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" (click)="onVerificar2FA()" [disabled]="loading || codigo2FA.length !== 6">
+      @if (loading) {
+        <span class="spinner"></span>
+        <span>Verificando...</span>
+      } @else {
+        <span>Acceder al Panel</span>
+        <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+      }
+    </button>
+
+    <button type="button" class="btn-link" (click)="volverAlLogin()">← Volver al inicio de sesión</button>
+  }
+
+</div>

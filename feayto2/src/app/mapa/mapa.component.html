@@ -1,0 +1,438 @@
+<div class="mapa-dashboard">
+
+  <!-- BARRA SUPERIOR DE FILTRO Y CONTROLES PRINCIPALES -->
+  <div class="mapa-top-bar">
+    <div class="city-selector-group">
+      <label for="city-select" class="selector-label">
+        <svg viewBox="0 0 20 20" fill="currentColor" class="selector-icon">
+          <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+        </svg>
+        <span>Municipio:</span>
+      </label>
+      <select id="city-select" class="modern-select" [(ngModel)]="selectedCity" (ngModelChange)="loadMap($event)">
+        <option [ngValue]="undefined" disabled>-- Selecciona un municipio --</option>
+        @for (city of cities; track city.name) {
+          <option [ngValue]="city">{{ city.name }}</option>
+        }
+      </select>
+    </div>
+
+    @if (selectedCity) {
+      <div class="map-actions-group">
+        
+        <!-- BOTÓN RECARGAR WEBSOCKET CON STATUS -->
+        <button type="button" class="btn-ws-status" (click)="recargarWebSocket()" title="Reconectar y recargar WebSocket con bealquileres (8081)">
+          <span class="ws-dot" [class.online]="wsStatus === 'conectado'" [class.connecting]="wsStatus === 'conectando'" [class.offline]="wsStatus === 'desconectado'"></span>
+          <span class="ws-label">WebSocket: <strong>{{ wsStatus | uppercase }}</strong></span>
+          <span class="ws-reload-icon">🔄</span>
+        </button>
+
+        <!-- BOTÓN UBICAR ESTACIÓN (MODO CLIC EN MAPA) -->
+        <button type="button" 
+                class="btn-action" 
+                [class.active-mode]="modoUbicarEstacion" 
+                (click)="toggleModoUbicarEstacion()"
+                title="Haz clic en cualquier punto del mapa para ubicar una estación">
+          <span class="action-emoji">📍</span>
+          <span>Ubicar Estación (Clic Mapa)</span>
+        </button>
+
+        <!-- BOTÓN ASIGNAR / UBICAR BICIS EN ESTACIONES -->
+        <button type="button" class="btn-action accent-btn" (click)="abrirModalUbicarBicis()" title="Asignar bicicletas a estaciones de recarga">
+          <span class="action-emoji">🚲</span>
+          <span>Ubicar Bicis</span>
+        </button>
+
+        <!-- SIMULACIÓN ALEATORIA -->
+        <button type="button" class="btn-action primary" (click)="simulacionAleatoria()" title="Simular tráfico de bicicletas">
+          <span>▶ Simulación</span>
+        </button>
+
+        <!-- GENERAR BICICLETA -->
+        <button type="button" class="btn-action secondary" (click)="generarBicicleta()" title="Generar una bicicleta individual en simulación">
+          <span>+ 1 Bici</span>
+        </button>
+
+        <!-- BADGES INFORMATIVOS -->
+        <div class="badges-counter-group">
+          <div class="info-badge bikes">
+            <span class="badge-dot pulse"></span>
+            <span><strong>{{ vehiculos.length }}</strong> en ruta</span>
+          </div>
+          <div class="info-badge stations">
+            <span class="badge-dot blue"></span>
+            <span><strong>{{ estaciones.length }}</strong> estaciones</span>
+          </div>
+        </div>
+
+      </div>
+    }
+  </div>
+
+  <!-- AVISO DE MODO UBICAR ESTACIÓN ACTIVO -->
+  @if (modoUbicarEstacion) {
+    <div class="interactive-mode-banner">
+      <div class="banner-content">
+        <span class="banner-pulse">📍</span>
+        <div>
+          <strong>MODO UBICAR ESTACIÓN ACTIVO:</strong> Haz clic en cualquier calle, parque o plaza del mapa para crear la estación en esas coordenadas exactas.
+        </div>
+      </div>
+      <button type="button" class="btn-banner-cancel" (click)="toggleModoUbicarEstacion()">
+        Salir del modo
+      </button>
+    </div>
+  }
+
+  <!-- ALERTAS -->
+  @if (mensajeExito) {
+    <div class="alert-map success">
+      <span class="alert-icon">✓</span>
+      <span>{{ mensajeExito }}</span>
+    </div>
+  }
+  @if (mensajeError) {
+    <div class="alert-map error">
+      <span class="alert-icon">⚠️</span>
+      <span>{{ mensajeError }}</span>
+    </div>
+  }
+
+  @if (!selectedCity) {
+    <div class="select-city-prompt">
+      <div class="prompt-icon">🗺️</div>
+      <h4>Selecciona un municipio para ver el mapa</h4>
+      <p>Elige tu ciudad en el selector superior para cargar la red cartográfica, estaciones y bicicletas.</p>
+    </div>
+  }
+
+  <div [hidden]="!selectedCity">
+    
+    <!-- CONTENEDOR DEL MAPA OPENSTREETMAP -->
+    <div class="map-card-wrapper" [class.crosshair-cursor]="modoUbicarEstacion">
+      <div id="map"></div>
+
+      <!-- LEYENDA FLOTANTE DEL MAPA -->
+      <div class="map-floating-legend">
+        <div class="legend-header">Leyenda del Mapa</div>
+        <div class="legend-item">
+          <div class="legend-badge square-sample disponible">4/10</div>
+          <span>Estación (Ocupadas / Capacidad)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-emoji">🚴🏼‍♀️</span>
+          <span>Bicicleta en circulación</span>
+        </div>
+        <div class="legend-hint">Haz clic en una estación para ver detalles o ubicar bicicletas</div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: TABLA DE ESTACIONES DE RECARGA CON CUADRADO [4/10] -->
+    <div class="stations-section-card">
+      <div class="stations-header">
+        <div class="stations-header-title">
+          <div class="stations-icon-badge">⚡</div>
+          <div>
+            <h4>Estaciones de Recarga en {{ selectedCity?.name }}</h4>
+            <p>Puntos de recarga ubicados interactivamente con capacidad y bicicletas asignadas (RN-EST-01, RN-EST-02).</p>
+          </div>
+        </div>
+        <button type="button" class="btn-action secondary" (click)="cargarEstaciones()">
+          <span>🔄 Refrescar Estaciones</span>
+        </button>
+      </div>
+
+      @if (estaciones.length === 0) {
+        <div class="empty-stations-box">
+          <span class="empty-icon">📍</span>
+          <h5>No hay estaciones de recarga en {{ selectedCity?.name }}</h5>
+          <p>Pulsa en el botón <strong>"📍 Ubicar Estación (Clic Mapa)"</strong> y pincha en cualquier calle del mapa para crear la primera.</p>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table class="modern-stations-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre de la Estación</th>
+                <th>Dirección / Ref.</th>
+                <th>Código Postal</th>
+                <th>Coordenadas (Lat, Lon)</th>
+                <th>Capacidad</th>
+                <th>Bicis Asignadas</th>
+                <th>Huecos Libres</th>
+                <th>Ocupación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of estaciones; track e.id) {
+                <tr>
+                  <td class="cell-id">#{{ e.id }}</td>
+                  <td class="cell-strong">
+                    <span class="station-name-chip">⚡ {{ e.name }}</span>
+                  </td>
+                  <td>{{ e.number }}</td>
+                  <td><span class="zip-pill">{{ e.zipCode || '13001' }}</span></td>
+                  <td class="cell-coords">
+                    @if (e.latitude != null && e.longitude != null) {
+                      <span>{{ e.latitude | number:'1.4-4' }}, {{ e.longitude | number:'1.4-4' }}</span>
+                    } @else {
+                      <span>—</span>
+                    }
+                  </td>
+                  <td><span class="cap-text">{{ e.capacidad }} huecos</span></td>
+                  <td>
+                    <span class="bikes-count-pill">{{ e.bicisOcupadas || 0 }} bicis</span>
+                  </td>
+                  <td>
+                    <span class="slots-free-pill" [class.zero]="(e.huecosLibres || 0) === 0">
+                      {{ e.huecosLibres != null ? e.huecosLibres : (e.capacidad - (e.bicisOcupadas || 0)) }} libres
+                    </span>
+                  </td>
+                  <td>
+                    <!-- CUADRADO INTERACTIVO [4/10] -->
+                    <div class="table-ratio-square" [class.llena]="(e.bicisOcupadas || 0) >= e.capacidad" [class.vacia]="(e.bicisOcupadas || 0) === 0">
+                      {{ e.bicisOcupadas || 0 }}/{{ e.capacidad }}
+                    </div>
+                  </td>
+                  <td class="cell-actions">
+                    <button type="button" class="btn-table-action view" (click)="centrarEstacionEnMapa(e)" title="Centrar mapa en esta estación">
+                      🔍 Ver
+                    </button>
+                    <button type="button" class="btn-table-action add" (click)="abrirModalUbicarBicis(e)" title="Ubicar bicicletas en esta estación">
+                      🚲 + Bicis
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- TABLA DE BICICLETAS EN CIRCULACIÓN Y RUTAS -->
+    <div class="live-table-card">
+      <div class="live-table-header">
+        <div class="live-header-title">
+          <div class="live-indicator">
+            <span class="live-dot"></span>
+            <span>EN DIRECTO</span>
+          </div>
+          <h4>Bicicletas en Circulación (Simulador & WebSocket)</h4>
+        </div>
+        <span class="live-hint">Haz clic sobre cualquier fila para trazar la ruta en el mapa</span>
+      </div>
+
+      <div class="tabla-container">
+        <table class="modern-live-table">
+          <thead>
+            <tr>
+              <th rowspan="2">Matrícula</th>
+              <th colspan="2">Punto Origen</th>
+              <th colspan="2">Punto Destino</th>
+              <th colspan="2">Posición Actual</th>
+              <th rowspan="2">Nivel Batería</th>
+              <th rowspan="2">Velocidad</th>
+              <th rowspan="2">Recorrido</th>
+            </tr>
+            <tr class="sub-header-row">
+              <th>Coord.</th>
+              <th>Vía</th>
+              <th>Coord.</th>
+              <th>Vía</th>
+              <th>Coord.</th>
+              <th>Vía</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of vehiculos; track v.matricula) {
+              <tr (click)="mostrarRuta(v)" class="vehiculo-row">
+                <td class="cell-matricula">
+                  <span class="bike-chip">
+                    <span class="bike-emoji">🚲</span>
+                    {{ v.matricula }}
+                  </span>
+                </td>
+                <td class="coords-cell">
+                  {{ v.latitudOrigen | number:'1.3-3' }}, {{ v.longitudOrigen | number:'1.3-3' }}
+                </td>
+                <td class="via-cell">{{ v.nombreOrigen || '—' }}</td>
+                <td class="coords-cell">
+                  {{ v.latitudDestino | number:'1.3-3' }}, {{ v.longitudDestino | number:'1.3-3' }}
+                </td>
+                <td class="via-cell">{{ v.nombreDestino || '—' }}</td>
+                <td class="coords-cell highlight">
+                  {{ v.latitudActual | number:'1.3-3' }}, {{ v.longitudActual | number:'1.3-3' }}
+                </td>
+                <td class="via-cell">{{ v.direccion || 'En tránsito' }}</td>
+                <td>
+                  <div class="mini-battery-wrap">
+                    <div class="mini-battery-bar" [style.width.%]="v.bateria || 100"></div>
+                    <span class="mini-battery-text">{{ (v.bateria || 100) | number:'1.0-0' }}%</span>
+                  </div>
+                </td>
+                <td class="cell-speed">
+                  <span class="speed-pill">
+                    {{ v.kmh | number:'1.0-0' }} <small>km/h</small>
+                  </span>
+                </td>
+                <td class="cell-dist">
+                  {{ v.distanciaRecorrida | number:'1.0-0' }} m
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL: UBICAR Y CREAR NUEVA ESTACIÓN DESDE EL MAPA -->
+  @if (mostrarModalCrearEstacion) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-header-icon">📍</div>
+          <div>
+            <h3>Ubicar Estación de Recarga</h3>
+            <p>Punto seleccionado mediante clic interactivo en el mapa.</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="cancelarCrearEstacion()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="coords-display-banner">
+            <span class="coords-label">Coordenadas fijadas en el mapa:</span>
+            <span class="coords-val">
+              Latitud: <strong>{{ coordenadasSeleccionadas?.lat }}</strong>, 
+              Longitud: <strong>{{ coordenadasSeleccionadas?.lng }}</strong>
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="est-name">Nombre de la Estación *</label>
+            <input id="est-name" 
+                   type="text" 
+                   class="form-input" 
+                   [(ngModel)]="nuevaEstacion.name" 
+                   placeholder="Ej: Estación Plaza Mayor">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="est-num">Calle / Número de referencia *</label>
+              <input id="est-num" 
+                     type="text" 
+                     class="form-input" 
+                     [(ngModel)]="nuevaEstacion.number" 
+                     placeholder="Ej: Calle Toledo, 14">
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="est-cp">Código Postal</label>
+              <input id="est-cp" 
+                     type="text" 
+                     class="form-input" 
+                     [(ngModel)]="nuevaEstacion.zipCode" 
+                     placeholder="Ej: 13001">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="est-cap">Capacidad total de anclajes (huecos)</label>
+            <input id="est-cap" 
+                   type="number" 
+                   min="1" 
+                   max="100" 
+                   class="form-input" 
+                   [(ngModel)]="nuevaEstacion.capacidad" 
+                   placeholder="10">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="cancelarCrearEstacion()" [disabled]="guardandoEstacion">
+            Cancelar
+          </button>
+          <button type="button" class="btn-confirm" (click)="guardarEstacionDesdeMapa()" [disabled]="guardandoEstacion">
+            @if (guardandoEstacion) {
+              <span>Guardando estación...</span>
+            } @else {
+              <span>💾 Ubicar y Crear Estación</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: UBICAR BICICLETAS EN ESTACIÓN -->
+  @if (mostrarModalUbicarBicis && estacionParaBicis) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-header-icon">🚲</div>
+          <div>
+            <h3>Ubicar Bicicletas en Estación</h3>
+            <p>Asigna bicicletas disponibles de la flota municipal a los anclajes de la estación.</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="cerrarModalUbicarBicis()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="station-summary-card">
+            <h4>⚡ {{ estacionParaBicis.name }}</h4>
+            <p>Dirección: {{ estacionParaBicis.number }} (CP: {{ estacionParaBicis.zipCode || '13001' }})</p>
+            <div class="station-pills">
+              <span class="pill">Capacidad: <strong>{{ estacionParaBicis.capacidad }}</strong></span>
+              <span class="pill">Ocupadas: <strong>{{ estacionParaBicis.bicisOcupadas || 0 }}</strong></span>
+              <span class="pill success">Huecos libres: <strong>{{ estacionParaBicis.huecosLibres }}</strong></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Selecciona la estación de destino:</label>
+            <select class="form-input" [(ngModel)]="estacionParaBicis">
+              @for (est of estaciones; track est.id) {
+                <option [ngValue]="est">
+                  {{ est.name }} ({{ est.huecosLibres }} huecos libres)
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Número de bicicletas a ubicar:</label>
+            <div class="counter-input-row">
+              <button type="button" class="btn-counter" (click)="cantidadBicisUbicar = cantidadBicisUbicar > 1 ? cantidadBicisUbicar - 1 : 1">
+                −
+              </button>
+              <span class="counter-num">{{ cantidadBicisUbicar }}</span>
+              <button type="button" class="btn-counter" (click)="cantidadBicisUbicar = cantidadBicisUbicar + 1">
+                +
+              </button>
+              <span class="counter-helper">bicicletas libres asignadas</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="cerrarModalUbicarBicis()" [disabled]="ubicandoBicis">
+            Cancelar
+          </button>
+          <button type="button" class="btn-confirm" (click)="confirmarUbicarBicis()" [disabled]="ubicandoBicis">
+            @if (ubicandoBicis) {
+              <span>Ubicando bicicletas...</span>
+            } @else {
+              <span>✓ Confirmar Ubicación</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

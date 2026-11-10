@@ -1,0 +1,749 @@
+@if (!usuarioActual) {
+  <!-- PANTALLA DE ACCESO (SPLIT CARD INSPIRADA EN EL DISEÑO) -->
+  <div class="auth-page-container">
+    <div class="split-card">
+      
+      <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+      <div class="card-left-column">
+        <div class="brand-header">
+          <div class="brand-logo-badge">
+            <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M12 3l9 7H3l9-7z"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h2>EcoBikes <span class="accent-text">Ayto</span></h2>
+            <span class="brand-subtitle">Red de Préstamos Municipales</span>
+          </div>
+        </div>
+
+        <!-- BARRA CONMUTADORA (PILL / TAB SWITCHER) -->
+        <div class="auth-nav-bar">
+          <button 
+            type="button" 
+            class="nav-tab-btn" 
+            [class.active]="authMode === 'login'" 
+            (click)="setAuthMode('login')">
+            <svg class="tab-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            Iniciar Sesión
+          </button>
+          <button 
+            type="button" 
+            class="nav-tab-btn" 
+            [class.active]="authMode === 'register'" 
+            (click)="setAuthMode('register')">
+            <svg class="tab-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
+            </svg>
+            Registrar Municipio
+          </button>
+        </div>
+
+        <!-- FORMULARIOS DINÁMICOS -->
+        <div class="form-content-area">
+          @if (authMode === 'login') {
+            <app-login [email]="emailParaLogin" (loginExitoso)="onLoginExitoso()"></app-login>
+          } @else {
+            <app-registro (cuentaRegistrada)="onCuentaRegistrada($event)"></app-registro>
+          }
+        </div>
+
+        <div class="card-footer">
+          <p>© 2026-2027 ESI UCLM · Tecnologías y Sistemas Web · Proyecto Bicicletas</p>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: ILUSTRACIÓN MUNICIPAL -->
+      <div class="card-right-column">
+        <div class="stars-backdrop">
+          <div class="star star-1"></div>
+          <div class="star star-2"></div>
+          <div class="star star-3"></div>
+          <div class="star star-4"></div>
+          <div class="star star-5"></div>
+          <div class="star star-6"></div>
+          <div class="star star-7"></div>
+          <div class="star star-8"></div>
+        </div>
+
+        <div class="city-illustration">
+          <svg class="illustration-svg" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="410" cy="80" r="34" fill="#fbbf24" opacity="0.9" />
+            <circle cx="420" cy="74" r="30" fill="#1e1145" />
+
+            <path d="M-20 380 Q 120 260 260 380 T 520 380 L520 420 L-20 420 Z" fill="#2e1065" opacity="0.6"/>
+            <path d="M-10 390 Q 180 290 380 390 T 540 390 L540 420 L-10 420 Z" fill="#3b0764" opacity="0.8"/>
+
+            <!-- Ayuntamiento Central -->
+            <rect x="130" y="270" width="240" height="15" rx="3" fill="#cbd5e1" />
+            <rect x="140" y="255" width="220" height="15" rx="2" fill="#e2e8f0" />
+            <rect x="150" y="160" width="200" height="95" fill="#f8fafc" />
+            
+            <rect x="165" y="170" width="12" height="85" fill="#e2e8f0" rx="2"/>
+            <rect x="195" y="170" width="12" height="85" fill="#e2e8f0" rx="2"/>
+            <rect x="295" y="170" width="12" height="85" fill="#e2e8f0" rx="2"/>
+            <rect x="325" y="170" width="12" height="85" fill="#e2e8f0" rx="2"/>
+
+            <rect x="225" y="175" width="18" height="30" rx="9" fill="#f59e0b" opacity="0.9"/>
+            <rect x="257" y="175" width="18" height="30" rx="9" fill="#f59e0b" opacity="0.9"/>
+            <rect x="235" y="215" width="30" height="40" rx="15" fill="#fbbf24"/>
+
+            <polygon points="140,160 360,160 250,105" fill="#f1f5f9" />
+            <circle cx="250" cy="138" r="14" fill="#fbbf24" stroke="#c2410c" stroke-width="2"/>
+            <line x1="250" y1="138" x2="250" y2="129" stroke="#78350f" stroke-width="2"/>
+            <line x1="250" y1="138" x2="257" y2="138" stroke="#78350f" stroke-width="2"/>
+
+            <rect x="238" y="70" width="24" height="35" fill="#e2e8f0" />
+            <polygon points="230,70 270,70 250,35" fill="#c2410c" />
+            <line x1="250" y1="35" x2="250" y2="15" stroke="#fbbf24" stroke-width="3" />
+            <polygon points="250,15 268,22 250,29" fill="#ea580c" />
+
+            <path d="M30 380 C 60 320, 140 320, 180 380 C 220 340, 300 340, 340 380 C 380 320, 460 320, 500 380 Z" fill="#ffffff" opacity="0.95"/>
+            <path d="M50 390 C 80 345, 150 345, 190 390 C 230 355, 290 355, 330 390 C 370 340, 440 340, 480 390 Z" fill="#e0f2fe" opacity="0.9"/>
+
+            <!-- Bicicleta inteligente -->
+            <g transform="translate(180, 295) scale(0.7)">
+              <circle cx="35" cy="55" r="22" stroke="#ea580c" stroke-width="6" fill="#1e293b"/>
+              <circle cx="125" cy="55" r="22" stroke="#ea580c" stroke-width="6" fill="#1e293b"/>
+              <circle cx="35" cy="55" r="6" fill="#f8fafc"/>
+              <circle cx="125" cy="55" r="6" fill="#f8fafc"/>
+              <path d="M35 55 L75 55 L110 25 L65 25 Z" stroke="#38bdf8" stroke-width="7" stroke-linejoin="round" fill="none"/>
+              <path d="M75 55 L65 15" stroke="#38bdf8" stroke-width="7" stroke-linecap="round"/>
+              <path d="M125 55 L108 12 L95 12" stroke="#38bdf8" stroke-width="7" stroke-linecap="round"/>
+              <path d="M55 15 L78 15" stroke="#ea580c" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="112" cy="12" r="5" fill="#fde047"/>
+              <path d="M115 12 L170 -5 L170 30 Z" fill="#fde047" opacity="0.3"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="illustration-caption">
+          <h3>Movilidad Eléctrica Municipal</h3>
+          <p>Gestión integral conectada a <strong>beusu</strong>, <strong>bealquileres</strong> y <strong>simulador</strong> con validación oficial.</p>
+          
+          <div class="feature-badges">
+            <span class="badge">Validación IDEE</span>
+            <span class="badge">OpenStreetMap</span>
+            <span class="badge">2FA QR Seguro</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+} @else {
+  <!-- PANEL PRINCIPAL AUTENTICADO DE GESTIÓN MUNICIPAL -->
+  <div class="dashboard-container">
+    
+    <!-- BARRA SUPERIOR (NAVBAR) -->
+    <header class="dashboard-header">
+      <div class="header-brand">
+        <div class="header-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M12 3l9 7H3l9-7z"/>
+          </svg>
+        </div>
+        <div class="header-title">
+          <h1>EcoBikes Ayto</h1>
+          <span class="municipio-pill">
+            Ayuntamiento de {{ usuarioActual.municipio }}
+          </span>
+        </div>
+      </div>
+
+      <div class="header-user-section">
+        <div class="user-chip">
+          <div class="user-avatar">
+            {{ usuarioActual.nombre.charAt(0).toUpperCase() }}
+          </div>
+          <div class="user-details">
+            <span class="user-name">{{ usuarioActual.nombre }}</span>
+            <span class="user-role">{{ usuarioActual.rol }}</span>
+          </div>
+        </div>
+
+        <!-- Indicador / Botón de 2FA en el Dashboard -->
+        @if (usuarioActual.fa2Activated) {
+          <div class="twofa-status-chip active" title="Autenticación de 2 Factores Activa">
+            <svg viewBox="0 0 20 20" fill="currentColor" class="chip-icon">
+              <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>2FA Activo</span>
+          </div>
+        } @else {
+          <button type="button" class="twofa-status-btn" (click)="abrirConfiguracion2FA()" title="Activar protección de Google Authenticator">
+            <svg viewBox="0 0 20 20" fill="currentColor" class="chip-icon">
+              <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>+ Activar 2FA (QR)</span>
+          </button>
+        }
+
+        <!-- Botón de Conexiones y Ajustes -->
+        <button type="button" class="btn-settings-header" (click)="abrirAjustes()" title="Conexiones y Ajustes del Sistema">
+          <svg viewBox="0 0 20 20" fill="currentColor" class="chip-icon">
+            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+          </svg>
+          <span>Ajustes & Conexiones</span>
+        </button>
+
+        <button type="button" class="btn-logout" (click)="logout()">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+          </svg>
+          Cerrar Sesión
+        </button>
+      </div>
+    </header>
+
+    <!-- CUERPO PRINCIPAL DEL PANEL -->
+    <main class="dashboard-main">
+      
+      <!-- BARRA DE PESTAÑAS DE GESTIÓN -->
+      <nav class="options-nav-bar">
+        <div class="nav-title">Opciones de Gestión:</div>
+        <div class="nav-pills-list">
+          <button 
+            type="button" 
+            class="option-pill" 
+            [class.active]="selectedOption === 1" 
+            (click)="selectOption(1)">
+            <span class="opt-num">1</span>
+            <span>Comprar bicicletas</span>
+          </button>
+          
+          <button 
+            type="button" 
+            class="option-pill" 
+            [class.active]="selectedOption === 2" 
+            (click)="selectOption(2)">
+            <span class="opt-num">2</span>
+            <span>Ubicar estaciones</span>
+          </button>
+
+          <button 
+            type="button" 
+            class="option-pill" 
+            [class.active]="selectedOption === 3" 
+            (click)="selectOption(3)">
+            <span class="opt-num">3</span>
+            <span>Gestionar estación</span>
+          </button>
+
+          <button 
+            type="button" 
+            class="option-pill" 
+            [class.active]="selectedOption === 4" 
+            (click)="selectOption(4)">
+            <span class="opt-num">4</span>
+            <span>Gestionar vehículos</span>
+          </button>
+
+          <button 
+            type="button" 
+            class="option-pill" 
+            [class.active]="selectedOption === 5" 
+            (click)="selectOption(5)">
+            <span class="opt-num">5</span>
+            <span>Gestionar tráfico / Mapa</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- ÁREA DE CARGA DE VISTAS -->
+      <section class="view-content-card">
+        
+        <!-- PESTAÑA 1: COMPRAR VEHÍCULOS -->
+        <div [hidden]="selectedOption !== 1">
+          <div class="view-header">
+            <h2>Comprar Bicicletas para {{ usuarioActual.municipio }}</h2>
+            <p>Adquiere y registra nuevas bicicletas eléctricas en la flota del sistema (1.200 € / unidad, RN-COM-04).</p>
+          </div>
+          <app-crear-vehiculos></app-crear-vehiculos>
+        </div>
+
+        <!-- PESTAÑA 2: UBICAR ESTACIONES -->
+        <div [hidden]="selectedOption !== 2">
+          <div class="view-header">
+            <h2>Ubicar Estaciones en {{ usuarioActual.municipio }}</h2>
+            <p>Establece nuevos puntos de recarga con capacidad para bicicletas (RN-EST-01, RN-EST-02).</p>
+          </div>
+
+          <div class="panel-section-grid">
+            <!-- Columna Izquierda: Formulario de Nueva Estación -->
+            <div class="card-inner">
+              <div class="card-inner-header">
+                <span class="icon-badge">📍</span>
+                <h4>Nueva Estación de Recarga</h4>
+              </div>
+
+              @if (mensajeEstacion) {
+                <div class="alert alert-success">
+                  <span>{{ mensajeEstacion }}</span>
+                </div>
+              }
+              @if (errorEstacion) {
+                <div class="alert alert-error">
+                  <span>{{ errorEstacion }}</span>
+                </div>
+              }
+
+              <form (ngSubmit)="crearEstacion()" class="estacion-form">
+                <div class="input-field">
+                  <label for="est-muni">Municipio</label>
+                  <input type="text" id="est-muni" [value]="usuarioActual.municipio" disabled class="input-disabled">
+                </div>
+
+                <div class="input-field">
+                  <label for="est-calle">Calle o Plaza de Ubicación</label>
+                  <input type="text" id="est-calle" [(ngModel)]="nuevaEstacion.name" name="estName" required placeholder="Ej. Calle Mayor, Plaza de España...">
+                </div>
+
+                <div class="form-row-2">
+                  <div class="input-field">
+                    <label for="est-num">Número</label>
+                    <input type="text" id="est-num" [(ngModel)]="nuevaEstacion.number" name="estNum" required placeholder="Ej. 1, 12, s/n">
+                  </div>
+                  <div class="input-field">
+                    <label for="est-cap">Capacidad (Bicis)</label>
+                    <input type="number" id="est-cap" [(ngModel)]="nuevaEstacion.capacidad" name="estCap" min="1" max="50" required placeholder="10">
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-primary" [disabled]="guardandoEstacion || !nuevaEstacion.name || !nuevaEstacion.number">
+                  @if (guardandoEstacion) {
+                    <span class="spinner"></span>
+                    <span>Ubicando estación...</span>
+                  } @else {
+                    <span>📍 Ubicar Estación en Municipio</span>
+                  }
+                </button>
+              </form>
+            </div>
+
+            <!-- Columna Derecha: Sincronización CartoCiudad / IDEE -->
+            <div class="card-inner">
+              <div class="card-inner-header">
+                <span class="icon-badge">🌐</span>
+                <h4>Sincronización con CartoCiudad (IDEE)</h4>
+              </div>
+              <p class="section-desc">Carga puntos de interés oficiales del municipio para posicionamiento cartográfico exacto.</p>
+
+              @if (mensajeCarto) {
+                <div class="alert alert-success">
+                  <span>{{ mensajeCarto }}</span>
+                </div>
+              }
+
+              <div class="action-btn-group">
+                <button type="button" class="btn-secondary" (click)="consultarDireccionesIDEE()" [disabled]="consultandoCarto">
+                  @if (consultandoCarto) {
+                    <span class="spinner"></span>
+                    <span>Consultando...</span>
+                  } @else {
+                    <span>🔍 Consultar Puntos Oficiales</span>
+                  }
+                </button>
+
+                <button type="button" class="btn-secondary" (click)="cargarPuntosIDEE()" [disabled]="cargandoCallesIDEE">
+                  @if (cargandoCallesIDEE) {
+                    <span class="spinner"></span>
+                    <span>Sincronizando...</span>
+                  } @else {
+                    <span>📥 Sincronizar Puntos en BD Alquileres</span>
+                  }
+                </button>
+              </div>
+
+              <div class="quick-summary-box">
+                <div class="summary-item">
+                  <span class="summary-val">{{ estaciones.length }}</span>
+                  <span class="summary-lbl">Estaciones activas</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-val">{{ totalDireccionesCarto !== null ? totalDireccionesCarto : '---' }}</span>
+                  <span class="summary-lbl">Direcciones oficiales IDEE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 3: GESTIONAR ESTACIÓN -->
+        <div [hidden]="selectedOption !== 3">
+          <div class="view-header">
+            <div class="header-with-action">
+              <div>
+                <h2>Estaciones de Recarga de {{ usuarioActual.municipio }}</h2>
+                <p>Supervisa las estaciones habilitadas, coordenadas y capacidades de aparcamiento.</p>
+              </div>
+              <button type="button" class="btn-refresh-pill" (click)="cargarEstaciones()" [disabled]="cargandoEstaciones">
+                <span [class.spinning]="cargandoEstaciones">🔄</span>
+                <span>Actualizar</span>
+              </button>
+            </div>
+          </div>
+
+          @if (estaciones.length === 0) {
+            <div class="empty-state">
+              <span class="empty-icon">📍</span>
+              <h5>No hay estaciones registradas todavía</h5>
+              <p>Ve a la pestaña <strong>2. Ubicar estaciones</strong> para crear tu primera estación en {{ usuarioActual.municipio }}.</p>
+            </div>
+          } @else {
+            <div class="table-wrapper">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre / Calle</th>
+                    <th>Número</th>
+                    <th>Municipio</th>
+                    <th>Coordenadas</th>
+                    <th>Capacidad Máxima</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (e of estaciones; track e.id) {
+                    <tr>
+                      <td class="cell-id">#{{ e.id }}</td>
+                      <td class="cell-strong">{{ e.name }}</td>
+                      <td>{{ e.number }}</td>
+                      <td><span class="municipio-label">{{ e.municipio }}</span></td>
+                      <td class="cell-coords">{{ e.latitude | number:'1.3-3' }}, {{ e.longitude | number:'1.3-3' }}</td>
+                      <td>
+                        <span class="badge-capacidad">{{ e.capacidad }} bicis</span>
+                      </td>
+                      <td>
+                        <span class="status-chip active">Operativa</span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+
+        <!-- PESTAÑA 4: GESTIONAR VEHÍCULOS / FLOTA -->
+        <div [hidden]="selectedOption !== 4">
+          <div class="view-header">
+            <div class="header-with-action">
+              <div>
+                <h2>Flota Asignada a {{ usuarioActual.municipio }}</h2>
+                <p>Gestión administrativa de las bicicletas asignadas a tu ayuntamiento (RN-BIC-04, RN-COM-03).</p>
+              </div>
+              <button type="button" class="btn-refresh-pill" (click)="cargarFlotaMunicipio()" [disabled]="cargandoFlota">
+                <span [class.spinning]="cargandoFlota">🔄</span>
+                <span>Actualizar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ASIGNADOR RÁPIDO DE VEHÍCULOS -->
+          <div class="assign-banner-card">
+            <div class="assign-info">
+              <span class="assign-icon">🚲</span>
+              <div>
+                <h4>Asignar Bicicletas Libres a {{ usuarioActual.municipio }}</h4>
+                <p>Asigna unidades sin municipio al parque móvil de tu localidad.</p>
+              </div>
+            </div>
+
+            <div class="assign-actions">
+              <div class="qty-selector">
+                <label for="qty-bicis">Cantidad:</label>
+                <input type="number" id="qty-bicis" [(ngModel)]="asignarCantidad" min="1" max="20" class="input-qty">
+              </div>
+
+              <button type="button" class="btn-submit-action" (click)="asignarVehiculosAMunicipio()" [disabled]="asignandoBicis">
+                @if (asignandoBicis) {
+                  <span class="btn-spinner"></span>
+                  <span>Asignando...</span>
+                } @else {
+                  <span>Asignar {{ asignarCantidad }} Bicicleta(s)</span>
+                }
+              </button>
+            </div>
+          </div>
+
+          @if (mensajeFlota) {
+            <div class="alert alert-success"><span>{{ mensajeFlota }}</span></div>
+          }
+          @if (errorFlota) {
+            <div class="alert alert-error"><span>{{ errorFlota }}</span></div>
+          }
+
+          @if (vehiculosFlota.length === 0) {
+            <div class="empty-state">
+              <span class="empty-icon">🚴🏼‍♂️</span>
+              <h5>Tu ayuntamiento aún no tiene bicicletas asignadas</h5>
+              <p>Genera vehículos en la pestaña <strong>1. Crear vehículos</strong> y asígnalos con el control superior.</p>
+            </div>
+          } @else {
+            <div class="table-wrapper">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Matrícula</th>
+                    <th>Municipio</th>
+                    <th>Nivel de Batería</th>
+                    <th>Distancia Total</th>
+                    <th>Posición</th>
+                    <th>Estado Administrativo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (v of vehiculosFlota; track v.id) {
+                    <tr>
+                      <td>
+                        <span class="matricula-tag">
+                          🚲 {{ v.matricula }}
+                        </span>
+                      </td>
+                      <td><span class="municipio-label">{{ v.municipio }}</span></td>
+                      <td>
+                        <div class="battery-bar-wrap">
+                          <div class="battery-bar" [style.width.%]="v.bateria || 100"></div>
+                          <span class="battery-text">{{ v.bateria || 100 }}%</span>
+                        </div>
+                      </td>
+                      <td>{{ v.distanciaTotal | number:'1.1-1' }} km</td>
+                      <td class="cell-coords">
+                        @if (v.latitudActual) {
+                          {{ v.latitudActual | number:'1.3-3' }}, {{ v.longitudActual | number:'1.3-3' }}
+                        } @else {
+                          <span class="unassigned-text">En estación</span>
+                        }
+                      </td>
+                      <td>
+                        <span class="status-chip" [class.active]="v.activo">
+                          {{ v.activo ? 'Activa / Disponible' : 'En Mantenimiento' }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+
+        <!-- PESTAÑA 5: GESTIONAR TRÁFICO / MAPA -->
+        <div [hidden]="selectedOption !== 5">
+          <div class="view-header">
+            <h2>Mapa de Tráfico en Tiempo Real</h2>
+            <p>Visualización OpenStreetMap de estaciones y bicicletas circulando por la ciudad.</p>
+          </div>
+          <app-mapa></app-mapa>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL DE CONFIGURACIÓN 2FA EN EL DASHBOARD -->
+  @if (mostrarModal2FA) {
+    <div class="modal-backdrop" (click)="cerrarModal2FA()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-icon-badge">🛡️</div>
+            <h3>Vincular Google Authenticator</h3>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="cerrarModal2FA()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          @if (exito2FADashboard) {
+            <div class="modal-alert success">
+              <span>{{ exito2FADashboard }}</span>
+            </div>
+          }
+
+          @if (error2FADashboard) {
+            <div class="modal-alert error">
+              <span>{{ error2FADashboard }}</span>
+            </div>
+          }
+
+          @if (loading2FADashboard && !qrUrlDashboard) {
+            <div class="modal-loading">
+              <span class="spinner"></span>
+              <span>Generando código QR seguro...</span>
+            </div>
+          }
+
+          @if (qrUrlDashboard) {
+            <div class="modal-qr-container">
+              <div class="modal-qr-box">
+                <qrcode
+                  [qrdata]="qrUrlDashboard"
+                  [width]="190"
+                  [errorCorrectionLevel]="'M'"
+                  [elementType]="'canvas'">
+                </qrcode>
+              </div>
+
+              <div class="modal-steps-list">
+                <p class="modal-instruction">1. Abre la app <strong>Google Authenticator</strong> en tu móvil.</p>
+                <p class="modal-instruction">2. Pulsa en <strong>+</strong> y escanea este código QR.</p>
+                <p class="modal-instruction">3. Escribe el código de 6 dígitos para confirmar.</p>
+              </div>
+            </div>
+
+            @if (qrSecretDashboard) {
+              <div class="secret-text-section">
+                <span>¿No puedes escanear? Clave manual:</span>
+                <div class="secret-text-row">
+                  <code>{{ qrSecretDashboard }}</code>
+                  <button type="button" class="btn-copy-small" (click)="copiarSecretoDashboard()">Copiar</button>
+                </div>
+              </div>
+            }
+
+            <div class="modal-code-input-row">
+              <label for="codigo-dash">Código de 6 dígitos:</label>
+              <input
+                type="text"
+                id="codigo-dash"
+                [(ngModel)]="codigo2FADashboard"
+                maxlength="6"
+                placeholder="123456"
+                class="modal-code-input">
+            </div>
+
+            <button
+              type="button"
+              class="btn-confirm-2fa"
+              (click)="verificar2FADashboard()"
+              [disabled]="loading2FADashboard || codigo2FADashboard.length !== 6">
+              @if (loading2FADashboard) {
+                <span>Verificando...</span>
+              } @else {
+                <span>Verificar y Activar 2FA</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DE CONEXIONES Y AJUSTES DEL SISTEMA -->
+  @if (mostrarModalAjustes) {
+    <div class="modal-backdrop" (click)="cerrarAjustes()">
+      <div class="modal-dialog adjustments-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-icon-badge">⚙️</div>
+            <h3>Conexiones y Ajustes del Sistema</h3>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="cerrarAjustes()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          @if (mensajeAjustes) {
+            <div class="modal-alert success">
+              <span>{{ mensajeAjustes }}</span>
+            </div>
+          }
+
+          <!-- ESTADO DE LOS MICROSERVICIOS -->
+          <div class="settings-block">
+            <div class="settings-block-header">
+              <h4>Estado de Servicios (Diagnóstico)</h4>
+              <button type="button" class="btn-test-refresh" (click)="probarConexiones()" [disabled]="conexiones.probando">
+                <span [class.spinning]="conexiones.probando">🔄</span>
+                <span>Probar conexiones</span>
+              </button>
+            </div>
+
+            <div class="connections-grid">
+              <div class="conn-card" [class.online]="conexiones.beusu === true" [class.offline]="conexiones.beusu === false">
+                <div class="conn-indicator"></div>
+                <div class="conn-text">
+                  <span class="conn-name">beusu (Usuarios)</span>
+                  <span class="conn-port">Puerto 8080 · Auth & 2FA</span>
+                </div>
+                <span class="conn-status-tag">{{ conexiones.beusu ? 'Conectado' : (conexiones.beusu === false ? 'Desconectado' : 'Verificando...') }}</span>
+              </div>
+
+              <div class="conn-card" [class.online]="conexiones.bealquileres === true" [class.offline]="conexiones.bealquileres === false">
+                <div class="conn-indicator"></div>
+                <div class="conn-text">
+                  <span class="conn-name">bealquileres (Gestión)</span>
+                  <span class="conn-port">Puerto 8081 · Flota & Estaciones</span>
+                </div>
+                <span class="conn-status-tag">{{ conexiones.bealquileres ? 'Conectado' : (conexiones.bealquileres === false ? 'Desconectado' : 'Verificando...') }}</span>
+              </div>
+
+              <div class="conn-card" [class.online]="conexiones.simulador === true" [class.offline]="conexiones.simulador === false">
+                <div class="conn-indicator"></div>
+                <div class="conn-text">
+                  <span class="conn-name">simulador (Tráfico)</span>
+                  <span class="conn-port">Puerto 8082 · Simulación Rutas</span>
+                </div>
+                <span class="conn-status-tag">{{ conexiones.simulador ? 'Conectado' : (conexiones.simulador === false ? 'Desconectado' : 'Verificando...') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AJUSTES DE PRUEBA: COORDENADAS (RT-LOC-04) -->
+          <div class="settings-block">
+            <div class="settings-block-header">
+              <h4>Coordenadas de Prueba (Requisito RT-LOC-04)</h4>
+            </div>
+            <p class="settings-hint">El enunciado exige permitir sustituir las coordenadas de geolocalización para pruebas docentes.</p>
+
+            <div class="coords-row">
+              <div class="input-field">
+                <label for="coord-lat">Latitud de Prueba:</label>
+                <input type="number" step="any" id="coord-lat" [(ngModel)]="coordenadasPrueba.lat" class="modal-code-input-sm">
+              </div>
+              <div class="input-field">
+                <label for="coord-lon">Longitud de Prueba:</label>
+                <input type="number" step="any" id="coord-lon" [(ngModel)]="coordenadasPrueba.lon" class="modal-code-input-sm">
+              </div>
+            </div>
+
+            <button type="button" class="btn-primary" (click)="guardarAjustesCoordenadas()">
+              <span>Guardar Coordenadas de Prueba</span>
+            </button>
+          </div>
+
+          <!-- DATOS DE LA SESIÓN -->
+          <div class="settings-block">
+            <div class="settings-block-header">
+              <h4>Sesión Actual</h4>
+            </div>
+            <div class="session-info-grid">
+              <div class="session-item">
+                <span class="lbl">Usuario:</span>
+                <span class="val">{{ usuarioActual.nombre }}</span>
+              </div>
+              <div class="session-item">
+                <span class="lbl">Correo:</span>
+                <span class="val">{{ usuarioActual.email }}</span>
+              </div>
+              <div class="session-item">
+                <span class="lbl">Municipio:</span>
+                <span class="val">{{ usuarioActual.municipio }}</span>
+              </div>
+              <div class="session-item">
+                <span class="lbl">2FA Google Authenticator:</span>
+                <span class="val" [class.val-success]="usuarioActual.fa2Activated">
+                  {{ usuarioActual.fa2Activated ? 'Activado y Protegido' : 'No Activado' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+}

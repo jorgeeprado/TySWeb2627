@@ -1,0 +1,164 @@
+<div class="auth-form-wrapper">
+  <div class="form-title-group">
+    <div class="title-with-action">
+      <h3>Alta de Ayuntamiento</h3>
+      <button type="button" class="btn-quick-fill" (click)="rellenarDatosPrueba()" title="Autocompletar datos de prueba válidos">
+        🧪 Rellenar de prueba
+      </button>
+    </div>
+    <p>Registra tu municipio en el sistema de préstamos de bicicletas</p>
+  </div>
+
+  @if (successMessage) {
+    <div class="alert alert-success">
+      <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      </svg>
+      <div class="alert-body">
+        <strong>¡Registro recibido!</strong>
+        <p>{{ successMessage }}</p>
+
+        @if (ultimoRegistro) {
+          <div class="quick-action-box">
+            <p class="quick-action-hint">Para facilitar las pruebas docentes sin servidor de correo SMTP:</p>
+            <div class="quick-btn-row">
+              <button type="button" class="btn-activate-fast" (click)="activarCuentaDirecta()" [disabled]="activandoCuenta">
+                @if (activandoCuenta) {
+                  <span class="spinner-small"></span>
+                  <span>Activando cuenta...</span>
+                } @else {
+                  <span>⚡ Activar Cuenta Ahora (1 Clic)</span>
+                }
+              </button>
+
+              <button type="button" class="btn-go-login" (click)="irAlLogin()">
+                <span>➡️ Ir a Iniciar Sesión</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert alert-error">
+      <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      </svg>
+      <div>
+        <strong>Aviso de validación</strong>
+        <p>{{ errorMessage }}</p>
+      </div>
+    </div>
+  }
+
+  <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="auth-form">
+    <div class="form-row">
+      <div class="input-field">
+        <label for="nombre">Nombre</label>
+        <div class="input-container">
+          <input type="text" id="nombre" formControlName="nombre" [class.invalid]="f['nombre'].invalid && f['nombre'].touched" placeholder="Ej. Jorge">
+        </div>
+        @if (f['nombre'].invalid && f['nombre'].touched) {
+          <span class="error-msg">Nombre obligatorio</span>
+        }
+      </div>
+      <div class="input-field">
+        <label for="apellidos">Apellidos</label>
+        <div class="input-container">
+          <input type="text" id="apellidos" formControlName="apellidos" [class.invalid]="f['apellidos'].invalid && f['apellidos'].touched" placeholder="Ej. Pérez">
+        </div>
+        @if (f['apellidos'].invalid && f['apellidos'].touched) {
+          <span class="error-msg">Apellidos obligatorios</span>
+        }
+      </div>
+    </div>
+
+    <div class="input-field">
+      <label for="email">Correo Institucional</label>
+      <div class="input-container">
+        <input type="email" id="email" formControlName="email" [class.invalid]="f['email'].invalid && f['email'].touched" placeholder="funcionario@ayuntamiento.es">
+      </div>
+      @if (f['email'].invalid && f['email'].touched) {
+        <span class="error-msg">Formato de correo electrónico inválido</span>
+      }
+    </div>
+
+    <div class="input-field">
+      <div class="label-with-hint">
+        <label for="municipio">Municipio</label>
+        <span class="hint-badge">Se valida con idee.es</span>
+      </div>
+      <div class="input-container">
+        <input type="text" id="municipio" formControlName="municipio" [class.invalid]="f['municipio'].invalid && f['municipio'].touched" placeholder="Ej. Ciudad Real, Horcajo de los Montes...">
+      </div>
+      @if (f['municipio'].invalid && f['municipio'].touched) {
+        <span class="error-msg">Municipio requerido</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="input-field">
+        <div class="label-with-hint">
+          <label for="latitud">Latitud Centro</label>
+          <span class="range-badge">[-90, 90]</span>
+        </div>
+        <div class="input-container">
+          <input type="number" step="any" id="latitud" formControlName="latitud" [class.invalid]="f['latitud'].invalid && f['latitud'].touched" placeholder="38.9861">
+        </div>
+        @if (f['latitud'].invalid && f['latitud'].touched) {
+          <span class="error-msg">Latitud válida entre -90 y 90</span>
+        }
+      </div>
+
+      <div class="input-field">
+        <div class="label-with-hint">
+          <label for="longitud">Longitud Centro</label>
+          <span class="range-badge">[-180, 180]</span>
+        </div>
+        <div class="input-container">
+          <input type="number" step="any" id="longitud" formControlName="longitud" [class.invalid]="f['longitud'].invalid && f['longitud'].touched" placeholder="-3.9273">
+        </div>
+        @if (f['longitud'].invalid && f['longitud'].touched) {
+          <span class="error-msg">Longitud válida entre -180 y 180</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="input-field">
+        <label for="pwd1">Contraseña</label>
+        <div class="input-container">
+          <input type="password" id="pwd1" formControlName="pwd1" [class.invalid]="f['pwd1'].invalid && f['pwd1'].touched" placeholder="Ej: Clave123!">
+        </div>
+        <span class="password-rule-hint">Mín. 6 caracteres: Mayús, minús, número y símbolo (ej: Clave123!)</span>
+        @if (f['pwd1'].invalid && f['pwd1'].touched) {
+          <span class="error-msg">Contraseña requerida</span>
+        }
+      </div>
+
+      <div class="input-field">
+        <label for="pwd2">Confirmar Contraseña</label>
+        <div class="input-container">
+          <input type="password" id="pwd2" formControlName="pwd2" [class.invalid]="f['pwd2'].invalid && f['pwd2'].touched" placeholder="Repite la contraseña">
+        </div>
+        @if (f['pwd2'].invalid && f['pwd2'].touched) {
+          <span class="error-msg">Repite la contraseña</span>
+        }
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="loading || registroForm.invalid">
+      @if (loading) {
+        <span class="spinner"></span>
+        <span>Validando con IDEE y registrando...</span>
+      } @else {
+        <span>Registrar Cuenta Municipal</span>
+        <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+      }
+    </button>
+  </form>
+</div>

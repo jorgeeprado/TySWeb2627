@@ -1,0 +1,488 @@
+.vehiculos-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===== TARJETA DE CREACIÓN ===== */
+.creator-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: white;
+  border-radius: 14px;
+  padding: 22px 26px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+  flex-wrap: wrap;
+}
+
+.creator-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.creator-icon-wrap {
+  width: 48px;
+  height: 48px;
+  background: #fff7ed;
+  color: #ea580c;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.creator-icon-wrap svg {
+  width: 26px;
+  height: 26px;
+}
+
+.creator-info h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.badge-role {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: #ffedd5;
+  color: #c2410c;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.price-summary-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 8px;
+  .price-label { font-size: 11px; color: #64748b; font-weight: 500; }
+  .price-value { font-size: 18px; font-weight: 800; color: #ea580c; }
+  .price-detail { font-size: 10.5px; color: #94a3b8; }
+}
+
+.creator-info p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.creator-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.counter-box {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.btn-counter {
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.btn-counter:hover:not(:disabled) {
+  background: #ea580c;
+  color: white;
+  border-color: #ea580c;
+}
+
+.btn-counter:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.counter-value {
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  min-width: 24px;
+  text-align: center;
+}
+
+.btn-submit-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+  transition: all 0.15s;
+}
+
+.btn-submit-action:hover:not(:disabled) {
+  opacity: 0.93;
+  transform: translateY(-1px);
+}
+
+.btn-submit-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ===== ALERTAS ===== */
+.alert-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.alert-box.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.alert-box.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.alert-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ===== MÉTRICAS ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 6px 0 2px;
+}
+
+.stat-number.accent {
+  color: #ea580c;
+}
+
+.stat-number.success {
+  color: #16a34a;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ===== TABLA ===== */
+.table-card {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-title h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.count-pill {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: #f8fafc;
+  color: #ea580c;
+  border-color: #fdba74;
+}
+
+.btn-refresh svg {
+  width: 14px;
+  height: 14px;
+}
+
+.spinning {
+  animation: spin 0.7s linear infinite;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 480px;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.modern-table thead th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.modern-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.1s;
+}
+
+.modern-table tbody tr:hover {
+  background: #fbfcfe;
+}
+
+.modern-table td {
+  padding: 13px 18px;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.cell-id {
+  font-weight: 700;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.matricula-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-family: monospace;
+}
+
+.tag-icon {
+  width: 13px;
+  height: 13px;
+  color: #64748b;
+}
+
+.municipio-label {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.cell-coords {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.unassigned-text {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.distance-text {
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Indicador de batería */
+.battery-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.battery-bar-wrap {
+  width: 60px;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.battery-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.battery-bar.high {
+  background: #16a34a;
+}
+
+.battery-bar.medium {
+  background: #f59e0b;
+}
+
+.battery-bar.low {
+  background: #ef4444;
+}
+
+.battery-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  min-width: 32px;
+}
+
+/* Pastillas de estado */
+.status-pill {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-pill.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-pill.inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Estado vacío */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.empty-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.empty-state h5 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.empty-state p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13.5px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+

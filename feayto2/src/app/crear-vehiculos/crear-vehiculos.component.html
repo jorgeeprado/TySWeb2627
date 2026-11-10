@@ -1,0 +1,178 @@
+<div class="vehiculos-dashboard">
+
+  <!-- BANNER DE COMPRA DE VEHÍCULOS (ROL ADMIN / AYUNTAMIENTO) -->
+  <div class="creator-card">
+    <div class="creator-info">
+      <div class="creator-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18.5" cy="17.5" r="3.5"/>
+          <circle cx="5.5" cy="17.5" r="3.5"/>
+          <circle cx="15" cy="5" r="1"/>
+          <path d="M12 17.5V14l-3-3 4-3 2 3h2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="badge-role">ROL ADMINISTRADOR / AYUNTAMIENTO</div>
+        <h3>Comprar Bicicletas para el Municipio</h3>
+        <p>Caso de uso 6.1.2: Compra por lotes de 1 a 5 unidades. Precio unitario fijado en <strong>{{ precioUnitario }} €</strong> (RN-COM-04) con batería calibrada al 100%.</p>
+      </div>
+    </div>
+
+    <div class="creator-controls">
+      <div class="price-summary-box">
+        <span class="price-label">Importe total:</span>
+        <span class="price-value">{{ precioTotal | number:'1.0-0' }} €</span>
+        <span class="price-detail">({{ numberOfVehicles }} × {{ precioUnitario }} €)</span>
+      </div>
+
+      <div class="counter-box">
+        <button type="button" class="btn-counter" (click)="decrementVehicles()" [disabled]="numberOfVehicles <= 1 || creating" title="Menos bicicletas">
+          −
+        </button>
+        <span class="counter-value">{{ numberOfVehicles }}</span>
+        <button type="button" class="btn-counter" (click)="incrementVehicles()" [disabled]="numberOfVehicles >= 5 || creating" title="Más bicicletas (máx 5)">
+          +
+        </button>
+      </div>
+
+      <button type="button" class="btn-submit-action" (click)="createVehicles()" [disabled]="creating">
+        @if (creating) {
+          <span class="btn-spinner"></span>
+          <span>Procesando compra...</span>
+        } @else {
+          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.24-1a1 1 0 00-.97-.78H3z"/>
+            <path d="M7 16a2 2 0 11-4 0 2 2 0 014 0zM17 16a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <span>Comprar {{ numberOfVehicles }} Bici(s) ({{ precioTotal }} €)</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- MENSAJES DE ALERTA -->
+  @if (successMsg) {
+    <div class="alert-box success">
+      <svg viewBox="0 0 20 20" fill="currentColor" class="alert-icon">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      </svg>
+      <span>{{ successMsg }}</span>
+    </div>
+  }
+
+  @if (errorMsg) {
+    <div class="alert-box error">
+      <svg viewBox="0 0 20 20" fill="currentColor" class="alert-icon">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      </svg>
+      <span>{{ errorMsg }}</span>
+    </div>
+  }
+
+  <!-- MÉTRICAS DE LA FLOTA -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-label">Flota Global Adquirida</span>
+      <span class="stat-number">{{ vehiculos.length }}</span>
+      <span class="stat-sub">unidades registradas</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Bicicletas Activas</span>
+      <span class="stat-number accent">{{ totalActivos }}</span>
+      <span class="stat-sub">operativas para asignación</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Nivel de Batería Promedio</span>
+      <span class="stat-number success">{{ bateriaPromedio }}%</span>
+      <span class="stat-sub">óptimo para circulación</span>
+    </div>
+  </div>
+
+  <!-- TABLA DE VEHÍCULOS COMPRADOS -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">
+        <h4>Inventario de Bicicletas Eléctricas</h4>
+        <span class="count-pill">{{ vehiculos.length }} unidades</span>
+      </div>
+      <button type="button" class="btn-refresh" (click)="getVehiculos()" [disabled]="loading">
+        <svg viewBox="0 0 20 20" fill="currentColor" [class.spinning]="loading">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.047a1 1 0 011.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01-.392-.386z" clip-rule="evenodd"/>
+        </svg>
+        <span>Actualizar</span>
+      </button>
+    </div>
+
+    @if (vehiculos.length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">🚲</span>
+        <h5>No hay bicicletas adquiridas en la flota</h5>
+        <p>Realiza tu primer pedido en el panel superior para incorporar bicicletas a tu municipio.</p>
+      </div>
+    } @else {
+      <div class="table-wrapper">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Matrícula</th>
+              <th>Municipio Asignado</th>
+              <th>Posición Actual</th>
+              <th>Distancia Total</th>
+              <th>Nivel de Batería</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of vehiculos; track v.id) {
+              <tr>
+                <td class="cell-id">#{{ v.id }}</td>
+                <td>
+                  <span class="matricula-tag">
+                    🚲 {{ v.matricula }}
+                  </span>
+                </td>
+                <td>
+                  <span class="municipio-label" [class.unassigned]="!v.municipio || v.municipio === 'Sin asignar'">
+                    {{ v.municipio || 'Sin asignar' }}
+                  </span>
+                </td>
+                <td class="cell-coords">
+                  @if (v.latitudActual !== null && v.longitudActual !== null) {
+                    <span>{{ v.latitudActual | number:'1.3-3' }}, {{ v.longitudActual | number:'1.3-3' }}</span>
+                  } @else {
+                    <span class="unassigned-text">En depósito municipal</span>
+                  }
+                </td>
+                <td>
+                  <span class="distance-text">{{ (v.distanciaTotal || 0) | number:'1.0-1' }} km</span>
+                </td>
+                <td>
+                  <div class="battery-indicator">
+                    <div class="battery-bar-wrap">
+                      <div class="battery-bar" 
+                           [style.width.%]="v.bateria"
+                           [class.high]="(v.bateria || 100) >= 60"
+                           [class.medium]="(v.bateria || 100) >= 30 && (v.bateria || 100) < 60"
+                           [class.low]="(v.bateria || 100) < 30">
+                      </div>
+                    </div>
+                    <span class="battery-label">🔋 {{ (v.bateria || 100) | number:'1.0-0' }}%</span>
+                  </div>
+                </td>
+                <td>
+                  @if (v.activo) {
+                    <span class="status-pill active">Activa</span>
+                  } @else {
+                    <span class="status-pill inactive">Inactiva</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+</div>
