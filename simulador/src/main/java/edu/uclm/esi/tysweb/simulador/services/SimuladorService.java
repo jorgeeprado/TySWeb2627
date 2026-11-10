@@ -158,6 +158,10 @@ public class SimuladorService {
 
     public List<MunicipioDto> getCities() {
         return this.municipioDao.findAll().stream()
-            .map(m -> new MunicipioDto(m.getName(), m.getLatitude(), m.getLongitude())).toList();
+            .map(m -> new MunicipioDto(
+                    m.getName(),
+                    m.getLatitude() != null ? m.getLatitude() : 38.9861,
+                    m.getLongitude() != null ? m.getLongitude() : -3.9273
+            )).toList();
     }
 }
