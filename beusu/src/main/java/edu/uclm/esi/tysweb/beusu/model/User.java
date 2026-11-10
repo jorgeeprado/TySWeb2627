@@ -33,6 +33,13 @@ public class User {
     private Long horaCreacion;
     private Long horaConfirmacion;
 
+    // Tokens de recuperación de contraseña independientes (RN-CUE-04, RT-CONF-02)
+    private String tokenRecuperacion;
+    private Long horaRecuperacion;
+
+    // Estado de pago de alta para ciudadanos (RN-CIU-01, RN-CIU-02)
+    private boolean pagadoAlta = false;
+
     // Necesario para distinguir entre "EMPLEADO_AYTO" y "CIUDADANO"
     private String rol; 
 
@@ -59,6 +66,7 @@ public class User {
         this.activo = false;
         this.fa2Activated = false;
         this.rol = "EMPLEADO_AYTO";
+        this.pagadoAlta = false;
     }
 
     // Getters y Setters
@@ -99,6 +107,14 @@ public class User {
     public Long getHoraConfirmacion() { return horaConfirmacion; }
     public void setHoraConfirmacion(Long horaConfirmacion) { this.horaConfirmacion = horaConfirmacion; }
 
+    public String getTokenRecuperacion() { return tokenRecuperacion; }
+    public void setTokenRecuperacion(String tokenRecuperacion) { this.tokenRecuperacion = tokenRecuperacion; }
+
+    public Long getHoraRecuperacion() { return horaRecuperacion; }
+    public void setHoraRecuperacion(Long horaRecuperacion) { this.horaRecuperacion = horaRecuperacion; }
+
+    public boolean isPagadoAlta() { return pagadoAlta; }
+    public void setPagadoAlta(boolean pagadoAlta) { this.pagadoAlta = pagadoAlta; }
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }

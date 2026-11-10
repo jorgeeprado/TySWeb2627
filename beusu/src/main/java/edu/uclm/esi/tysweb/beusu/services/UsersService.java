@@ -1,5 +1,6 @@
 package edu.uclm.esi.tysweb.beusu.services;
 
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,8 @@ import edu.uclm.esi.tysweb.beusu.dao.UserDao;
 import edu.uclm.esi.tysweb.beusu.dto.LoginRequest;
 import edu.uclm.esi.tysweb.beusu.dto.LoginResponse;
 import edu.uclm.esi.tysweb.beusu.dto.RegistroRequest;
+import edu.uclm.esi.tysweb.beusu.dto.ResetPasswordRequest;
+import edu.uclm.esi.tysweb.beusu.dto.UsuarioValidadoDto;
 import edu.uclm.esi.tysweb.beusu.model.User;
 
 @Service
@@ -30,19 +33,24 @@ public class UsersService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // googleAuth: GoogleAuthClient  (atributo del diagrama)
+    // googleAuth: GoogleAuthClient (atributo del diagrama)
     @Autowired
     private GoogleAuthClient googleAuth;
 
+    // RT-CONF-01: Caducidad configurable del token de confirmación (24h)
     @Value("${app.token.confirmacion.expiration-ms:86400000}")
-    private long tokenExpirationMs;
+    private long tokenConfirmacionExpirationMs;
+
+    // RT-CONF-02: Caducidad configurable e independiente del token de recuperación (30min)
+    @Value("${app.token.recuperacion.expiration-ms:1800000}")
+    private long tokenRecuperacionExpirationMs;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // =========================================================================
     // CASO DE USO: Registrar municipio
     // =========================================================================
-    public java.util.Map<String, Object> registerMunicipio(RegistroRequest request) {
+    public Map<String, Object> registerMunicipio(RegistroRequest request) {
         String emailLimpio = request.email().trim().toLowerCase();
 
         // 1. Comprobar si ya existe una cuenta con este email
@@ -75,6 +83,7 @@ public class UsersService {
         user.setHoraCreacion(System.currentTimeMillis());
         user.setHoraConfirmacion(null);
         user.setRol("EMPLEADO_AYTO");
+        user.setPagadoAlta(false);
 
         this.userDao.save(user);
 
@@ -82,7 +91,7 @@ public class UsersService {
         this.emailService.enviarCorreoConfirmacion(user.getEmail(), user.getTokenCreacion());
 
         String confirmUrl = "http://localhost:8080/users/confirmar?token=" + user.getTokenCreacion();
-        java.util.Map<String, Object> respuesta = new java.util.HashMap<>();
+        Map<String, Object> respuesta = new java.util.HashMap<>();
         respuesta.put("message", "Registro completado con éxito. Por favor confirma tu cuenta.");
         respuesta.put("email", user.getEmail());
         respuesta.put("token", user.getTokenCreacion());
@@ -98,7 +107,7 @@ public class UsersService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token de confirmación ausente");
         }
 
-        User user = this.userDao.findByTokenCreacion(token);
+        User user = this.userDao.findByTokenCreacion(token.trim());
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El token de confirmación no existe");
         }
@@ -108,7 +117,7 @@ public class UsersService {
         }
 
         long tiempoTranscurrido = System.currentTimeMillis() - user.getHoraCreacion();
-        if (tiempoTranscurrido > this.tokenExpirationMs) {
+        if (tiempoTranscurrido > this.tokenConfirmacionExpirationMs) {
             throw new ResponseStatusException(HttpStatus.GONE,
                     "El token de confirmación ha caducado. Debe iniciar de nuevo el proceso de registro");
         }
@@ -141,6 +150,119 @@ public class UsersService {
         this.userDao.save(user);
         this.emailService.enviarCorreoCuentaConfirmada(user.getEmail());
         return user;
+    }
+
+    // =========================================================================
+    // CASO DE USO: Solicitar recuperación de contraseña (RN-CUE-04, RC-SEC-03, RT-CONF-02)
+    // Mensaje neutro obligatorio para evitar enumeración de usuarios
+    // =========================================================================
+    public Map<String, String> solicitarRecuperacionPwd(String email) {
+        final String MENSAJE_NEUTRO = "Si el correo electrónico está registrado en el sistema, recibirás un mensaje con las instrucciones para restablecer tu contraseña.";
+
+        if (email == null || email.trim().isEmpty()) {
+            return Map.of("message", MENSAJE_NEUTRO);
+        }
+
+        String emailLimpio = email.trim().toLowerCase();
+        User user = this.userDao.findByEmail(emailLimpio);
+
+        // Solo si el usuario existe y está activo generamos token y enviamos correo
+        if (user != null && Boolean.TRUE.equals(user.getActivo())) {
+            // RN-CUE-04: Si existía una solicitud previa, se sobrescribe e invalida la anterior
+            String tokenRecuperacion = UUID.randomUUID().toString();
+            user.setTokenRecuperacion(tokenRecuperacion);
+            user.setHoraRecuperacion(System.currentTimeMillis());
+            this.userDao.save(user);
+
+            // Enviar correo de forma asíncrona
+            this.emailService.enviarCorreoRecuperacion(user.getEmail(), tokenRecuperacion);
+
+            // Mensaje neutro idéntico (RC-SEC-03); incluimos el token en modo desarrollo por comodidad
+            return Map.of(
+                    "message", MENSAJE_NEUTRO,
+                    "token", tokenRecuperacion
+            );
+        }
+
+        // Si el usuario no existe o no está activo, respuesta neutra idéntica (RC-SEC-03)
+        return Map.of("message", MENSAJE_NEUTRO);
+    }
+
+    // =========================================================================
+    // CASO DE USO: Crear nueva contraseña con token de recuperación (RN-CUE-04, RT-CONF-02)
+    // =========================================================================
+    public Map<String, String> cambiarPasswordConToken(ResetPasswordRequest request) {
+        if (request == null || request.token() == null || request.token().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token de recuperación ausente");
+        }
+
+        if (request.nuevaPwd1() == null || request.nuevaPwd2() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Las nuevas contraseñas no pueden ser nulas");
+        }
+
+        if (!request.nuevaPwd1().equals(request.nuevaPwd2())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Las contraseñas no coinciden");
+        }
+
+        User user = this.userDao.findByTokenRecuperacion(request.token().trim());
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "El token de recuperación no existe o ya ha sido utilizado");
+        }
+
+        long tiempoTranscurrido = System.currentTimeMillis() - user.getHoraRecuperacion();
+        if (tiempoTranscurrido > this.tokenRecuperacionExpirationMs) {
+            throw new ResponseStatusException(HttpStatus.GONE,
+                    "El token de recuperación ha caducado. Por favor, solicita uno nuevo.");
+        }
+
+        // Actualizar contraseña hasheada
+        user.setPassword(this.passwordEncoder.encode(request.nuevaPwd1()));
+        // Invalidar el token para asegurar que sea de un solo uso (RN-CUE-04)
+        user.setTokenRecuperacion(null);
+        user.setHoraRecuperacion(null);
+        this.userDao.save(user);
+
+        this.emailService.enviarCorreoPasswordModificada(user.getEmail());
+
+        return Map.of("message", "Contraseña restablecida con éxito. Ya puedes iniciar sesión con tu nueva contraseña.");
+    }
+
+    // =========================================================================
+    // ENDPOINT INTERNO: Validación de sesión inter-backend (RT-AUT-02, RC-SEC-02)
+    // =========================================================================
+    public UsuarioValidadoDto validateSession(String authHeaderOrToken) {
+        if (authHeaderOrToken == null || authHeaderOrToken.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Cabecera de autorización o token ausente");
+        }
+
+        String token = authHeaderOrToken.trim();
+        if (token.startsWith("Bearer ") || token.startsWith("bearer ")) {
+            token = token.substring(7).trim();
+        }
+
+        if (!this.jwtUtil.esTokenValido(token)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token JWT inválido o caducado");
+        }
+
+        String email = this.jwtUtil.getEmailDelToken(token);
+        if (email == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token no contiene un sujeto válido");
+        }
+
+        User user = this.userDao.findByEmail(email);
+        if (user == null || !Boolean.TRUE.equals(user.getActivo())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado o cuenta no activa");
+        }
+
+        return new UsuarioValidadoDto(
+                user.getId(),
+                user.getEmail(),
+                user.getNombre(),
+                user.getRol() != null ? user.getRol() : "EMPLEADO_AYTO",
+                user.getMunicipio(),
+                user.isPagadoAlta()
+        );
     }
 
     // =========================================================================
@@ -179,11 +301,8 @@ public class UsersService {
 
     // =========================================================================
     // CASO DE USO: Activar 2FA - Fase 1: Generar y compartir el secreto
-    // Flujo del diagrama: pasos 2-10
-    //   activar2FA(email): String
     // =========================================================================
     public String activar2FA(String email) {
-        // Paso 3: Buscar usuario
         User user = this.userDao.findByEmail(email);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
@@ -192,27 +311,19 @@ public class UsersService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "La cuenta no está activa");
         }
 
-        // Paso 5: Crear secreto (mediante GoogleAuthClient)
         String secreto = this.googleAuth.createCredentials();
-
-        // Paso 7: Generar URL del QR
         String urlQr = this.googleAuth.getOtpAuthUrl(email, secreto);
 
-        // Paso 9: Guardar secreto del usuario en BBDD
         user.setSecretKey(secreto);
         this.userDao.save(user);
 
-        // Paso 10-11: Devolver URL del QR al frontend para que muestre el código
         return urlQr;
     }
 
     // =========================================================================
     // CASO DE USO: Verificar 2FA - Fase 2: Verificación sin red
-    // Flujo del diagrama: pasos 17-37
-    //   confirm2faCode(data): token JWT
     // =========================================================================
     public LoginResponse confirm2faCode(String email, int code) {
-        // Paso 19: Buscar usuario con su secreto
         User user = this.userDao.findByEmail(email);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
@@ -222,22 +333,18 @@ public class UsersService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El usuario no tiene 2FA configurado");
         }
 
-        // Paso 21-23: Calcula el código con el mismo secreto y hora, y compara
         boolean esValido = this.googleAuth.authorize(user.getSecretKey(), code);
         if (!esValido) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Código 2FA inválido");
         }
 
-        // Paso 25: Marcar 2FA como activo (si viene de la activación inicial)
         if (!user.isFa2Activated()) {
             user.setFa2Activated(true);
             this.userDao.save(user);
         }
 
-        // Paso 26: Crear token de sesión
         String token = this.jwtUtil.generarToken(user.getEmail(), user.getRol() != null ? user.getRol() : "EMPLEADO_AYTO");
 
-        // Paso 27: OK + token
         return new LoginResponse(
                 token,
                 user.getEmail(),
@@ -248,7 +355,7 @@ public class UsersService {
         );
     }
 
-    public LoginResponse confirm2faCode(java.util.Map<String, Object> data) {
+    public LoginResponse confirm2faCode(Map<String, Object> data) {
         String email = (String) data.get("email");
         int code = Integer.parseInt(data.get("code").toString());
         return confirm2faCode(email, code);

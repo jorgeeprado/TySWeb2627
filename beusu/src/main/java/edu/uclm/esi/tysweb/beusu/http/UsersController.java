@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import edu.uclm.esi.tysweb.beusu.dto.LoginRequest;
 import edu.uclm.esi.tysweb.beusu.dto.LoginResponse;
 import edu.uclm.esi.tysweb.beusu.dto.RegistroRequest;
+import edu.uclm.esi.tysweb.beusu.dto.ResetPasswordRequest;
+import edu.uclm.esi.tysweb.beusu.dto.SolicitarRecuperacionRequest;
+import edu.uclm.esi.tysweb.beusu.dto.UsuarioValidadoDto;
 import edu.uclm.esi.tysweb.beusu.services.UsersService;
 import jakarta.validation.Valid;
 
@@ -18,8 +21,11 @@ import jakarta.validation.Valid;
  * Diagrama de clases: <<RestController>> UsersController
  *   - service: UsersService
  *   + registerMunicipio(body)
- *   + activate2FA(email)       <- NUEVO (2FA Fase 1)
- *   + verify2FACode(body)      <- NUEVO (2FA Fase 2)
+ *   + activate2FA(email)
+ *   + verify2FACode(body)
+ *   + solicitarRecuperacion(body)
+ *   + cambiarPassword(body)
+ *   + validateSession(token)
  */
 @RestController
 @RequestMapping("/users")
@@ -96,7 +102,6 @@ public class UsersController {
 
     // -------------------------------------------------------------------------
     // POST /users/activate2FA  — 2FA Fase 1: Generar QR y secreto
-    // Acepta email tanto por RequestParam como por RequestBody
     // -------------------------------------------------------------------------
     @PostMapping("/activate2FA")
     public ResponseEntity<Map<String, String>> activate2FA(
@@ -113,5 +118,42 @@ public class UsersController {
     @PostMapping("/verify2FACode")
     public LoginResponse verify2FACode(@RequestBody Map<String, Object> body) {
         return this.service.confirm2faCode(body);
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /users/solicitarRecuperacion  — Recuperación de contraseña (RN-CUE-04, RC-SEC-03)
+    // -------------------------------------------------------------------------
+    @PostMapping("/solicitarRecuperacion")
+    public ResponseEntity<Map<String, String>> solicitarRecuperacion(@Valid @RequestBody SolicitarRecuperacionRequest request) {
+        return ResponseEntity.ok(this.service.solicitarRecuperacionPwd(request.email()));
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /users/cambiarPassword  — Cambio con token (RN-CUE-04, RT-CONF-02)
+    // -------------------------------------------------------------------------
+    @PostMapping("/cambiarPassword")
+    public ResponseEntity<Map<String, String>> cambiarPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(this.service.cambiarPasswordConToken(request));
+    }
+
+    // -------------------------------------------------------------------------
+    // GET / POST /users/validateSession  — Validación inter-backend (RT-AUT-02, RC-SEC-02)
+    // -------------------------------------------------------------------------
+    @GetMapping("/validateSession")
+    public ResponseEntity<UsuarioValidadoDto> validateSession(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestParam(value = "token", required = false) String tokenParam) {
+        String token = (authHeader != null && !authHeader.isBlank()) ? authHeader : tokenParam;
+        return ResponseEntity.ok(this.service.validateSession(token));
+    }
+
+    @PostMapping("/validateSession")
+    public ResponseEntity<UsuarioValidadoDto> validateSessionPost(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody(required = false) Map<String, String> body) {
+        String token = (authHeader != null && !authHeader.isBlank()) 
+                ? authHeader 
+                : (body != null ? body.get("token") : null);
+        return ResponseEntity.ok(this.service.validateSession(token));
     }
 }

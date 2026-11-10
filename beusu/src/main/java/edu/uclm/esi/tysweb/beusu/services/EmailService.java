@@ -67,6 +67,54 @@ public class EmailService {
         enviarPorSmtpAsincrono(destinatario, asunto, mensaje);
     }
 
+    /**
+     * Envía el correo para restablecer la contraseña con el token temporal (RN-CUE-04, RT-CONF-02)
+     */
+    public void enviarCorreoRecuperacion(String destinatario, String token) {
+        String urlRecuperacion = "http://localhost:4200/reset-password?token=" + token;
+
+        String asunto = "Recuperación de contraseña - Gestión de Bicicletas";
+        String mensaje = """
+                Hola,
+                
+                Has solicitado restablecer tu contraseña en el sistema de gestión de bicicletas eléctricas.
+                Para crear una nueva contraseña, por favor haz clic en el siguiente enlace:
+                
+                %s
+                
+                Este enlace de recuperación es de un solo uso y caduca en 30 minutos.
+                Si no has solicitado este cambio, puedes ignorar este mensaje de forma segura.
+                """.formatted(urlRecuperacion);
+
+        System.out.println("================================================================================");
+        System.out.println("[SISTEMA DE CORREO] Correo de recuperación enviado a: " + destinatario);
+        System.out.println("Asunto: " + asunto);
+        System.out.println("Token de recuperación: " + token);
+        System.out.println("Enlace de recuperación: " + urlRecuperacion);
+        System.out.println("================================================================================");
+
+        enviarPorSmtpAsincrono(destinatario, asunto, mensaje);
+    }
+
+    /**
+     * Notificación de confirmación de cambio de contraseña completado
+     */
+    public void enviarCorreoPasswordModificada(String destinatario) {
+        String asunto = "Contraseña actualizada - Gestión de Bicicletas";
+        String mensaje = """
+                Hola,
+                
+                Tu contraseña ha sido restablecida correctamente. Ya puedes acceder con tus nuevas credenciales.
+                Si no has sido tú quien ha realizado este cambio, contacta inmediatamente con el administrador.
+                """;
+
+        System.out.println("================================================================================");
+        System.out.println("[SISTEMA DE CORREO] Contraseña modificada para: " + destinatario);
+        System.out.println("================================================================================");
+
+        enviarPorSmtpAsincrono(destinatario, asunto, mensaje);
+    }
+
     private void enviarPorSmtpAsincrono(String destinatario, String asunto, String texto) {
         if (this.mailSender == null) {
             log.warn("JavaMailSender no está configurado. El correo solo se muestra en consola.");
