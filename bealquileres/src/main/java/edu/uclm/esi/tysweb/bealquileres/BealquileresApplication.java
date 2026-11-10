@@ -1,7 +1,5 @@
 package edu.uclm.esi.tysweb.bealquileres;
 
-import java.io.Console;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

@@ -12,6 +12,19 @@ import jakarta.persistence.OneToMany;
 
 @Entity
 public class Municipio {
+    private Double latitud;
+    private Double longitud;
+
+    public Double getLatitud() { return latitud; }
+    public void setLatitud(Double latitud) { this.latitud = latitud; }
+    
+    public Double getLongitud() { return longitud; }
+    public void setLongitud(Double longitud) { this.longitud = longitud; }
+
+
+
+
+
     @Id @Column(length = 36)
     private String id;
 
