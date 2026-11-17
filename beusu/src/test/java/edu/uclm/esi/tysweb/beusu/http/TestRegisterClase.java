@@ -31,6 +31,16 @@ public class TestRegisterClase {
     @Autowired
     private UserDao userDao;
 
+    @org.junit.jupiter.api.BeforeEach
+    void limpiarUsuariosDePrueba() {
+        for (String email : new String[]{"pepe@pepe.es", "pepe2@pepe.es", "pepe_inexistente@pepe.es", "confirmar@pepe.es"}) {
+            User existing = this.userDao.findByEmail(email);
+            if (existing != null) {
+                this.userDao.delete(existing);
+            }
+        }
+    }
+
     @Test
     void testRegistrarNormal() throws Exception {
 

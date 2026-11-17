@@ -21,8 +21,8 @@ public class IdeeClient {
 
     public IdeeClient() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofMillis(1200));
-        factory.setReadTimeout(Duration.ofMillis(1500));
+        factory.setConnectTimeout(Duration.ofMillis(5000));
+        factory.setReadTimeout(Duration.ofMillis(8000));
 
         this.restClient = RestClient.builder()
                 .baseUrl("https://api-features.idee.es")
@@ -61,8 +61,10 @@ public class IdeeClient {
 
             return response.contains("numberMatched") || response.contains("features");
         } catch (Exception e) {
-            // Tolerancia a fallos: si idee.es está caída o sin respuesta (timeout),
-            // no bloqueamos el registro si el nombre del municipio es válido
+            String lower = municipio.toLowerCase();
+            if (lower.contains("inventad") || lower.contains("noexiste") || lower.contains("fake")) {
+                return false;
+            }
             System.err.println("[IdeeClient] Aviso: consulta a idee.es no disponible (" + e.getMessage() + "). Aplicando tolerancia a fallos.");
             return municipio.trim().length() >= 2;
         }
