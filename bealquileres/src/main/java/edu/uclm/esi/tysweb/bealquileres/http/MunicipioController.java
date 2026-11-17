@@ -10,12 +10,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import edu.uclm.esi.tysweb.bealquileres.dto.FeatureSimpleDto;
 import edu.uclm.esi.tysweb.bealquileres.dto.MunicipioRequest;
 import edu.uclm.esi.tysweb.bealquileres.dto.SetEstacionDtoRequest;
+import edu.uclm.esi.tysweb.bealquileres.dto.UsuarioAutenticadoDto;
+import edu.uclm.esi.tysweb.bealquileres.model.Municipio;
 import edu.uclm.esi.tysweb.bealquileres.services.MunicipioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/municipios")
@@ -49,6 +53,42 @@ public class MunicipioController {
 
     }
 
+
+    @PostMapping("/especificar")
+    @Operation(summary = "Especifica o registra el municipio en bealquileres (RN-MUN-01)")
+    public java.util.Map<String, Object> especificar(
+            @RequestBody(required = false) MunicipioRequest request,
+            @RequestParam(required = false) String municipio,
+            HttpServletRequest httpRequest) {
+
+        String nombreMuni = (request != null && request.municipio() != null && !request.municipio().isBlank())
+                ? request.municipio()
+                : municipio;
+
+        if (nombreMuni == null || nombreMuni.isBlank()) {
+            UsuarioAutenticadoDto usuario = (UsuarioAutenticadoDto) httpRequest.getAttribute("usuarioAutenticado");
+            if (usuario != null) {
+                nombreMuni = usuario.municipio();
+            }
+        }
+
+        if (nombreMuni == null || nombreMuni.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Municipio no especificado");
+        }
+
+        Municipio m = this.municipioService.especificarMunicipio(nombreMuni);
+        return java.util.Map.of(
+                "id", m.getId(),
+                "nombre", m.getName(),
+                "status", "OK"
+        );
+    }
+
+    @GetMapping("/getFeatures")
+    @Operation(summary = "Devuelve los puntos de interés o calles (Feature) cargados para el municipio")
+    public java.util.List<FeatureSimpleDto> getFeatures(@RequestParam String municipio) {
+        return this.municipioService.getFeatures(municipio);
+    }
 
     @GetMapping("/getEstaciones")
     @Operation(summary = "Devuelve las estaciones creadas en el municipio")

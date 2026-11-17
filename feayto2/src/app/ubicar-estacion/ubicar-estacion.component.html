@@ -1,0 +1,126 @@
+<div class="ubicar-page-container">
+  <div class="header-nav">
+    <button type="button" class="btn-volver" (click)="volver()">← Volver al Menú</button>
+    <span class="muni-title">Estaciones de Recarga · {{ usuario?.municipio || 'Municipal' }}</span>
+  </div>
+
+  <div class="main-card">
+    <div class="card-header">
+      <h2>2 Ubicar estación</h2>
+      <p class="subtitle">Ubica nuevos puntos de recarga en el municipio sobre puntos de interés (RN-EST-01, RN-EST-02).</p>
+    </div>
+
+    @if (mensaje) {
+      <div class="alert alert-success">
+        <span>✅ {{ mensaje }}</span>
+      </div>
+    }
+
+    @if (error) {
+      <div class="alert alert-error">
+        <span>⚠️ {{ error }}</span>
+      </div>
+    }
+
+    <div class="estacion-grid">
+      <!-- FORMULARIO DE ALTA DE ESTACIÓN -->
+      <div class="form-section">
+        <h3>Nueva Estación</h3>
+        
+        <form (ngSubmit)="crearEstacion()" class="estacion-form">
+          <div class="form-group">
+            <label for="est-municipio">Municipio</label>
+            <input type="text" id="est-municipio" [value]="usuario?.municipio || 'Ciudad Real'" disabled class="input-disabled">
+          </div>
+
+          <div class="form-group">
+            <label for="est-calle">Calle / Ubicación (Feature)</label>
+            <input 
+              type="text" 
+              id="est-calle" 
+              [(ngModel)]="nombreCalle" 
+              name="nombreCalle"
+              required 
+              placeholder="Ej: Calle Toledo, Plaza Mayor...">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="est-numero">Número</label>
+              <input 
+                type="text" 
+                id="est-numero" 
+                [(ngModel)]="numeroCalle" 
+                name="numeroCalle"
+                required 
+                placeholder="1">
+            </div>
+
+            <div class="form-group">
+              <label for="est-capacidad">Capacidad (bicis)</label>
+              <input 
+                type="number" 
+                min="1" 
+                max="50"
+                id="est-capacidad" 
+                [(ngModel)]="capacidad" 
+                name="capacidad"
+                required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-crear" [disabled]="guardando || !nombreCalle || !numeroCalle">
+            @if (guardando) {
+              <span>Guardando estación...</span>
+            } @else {
+              <span>Guardar Estación</span>
+            }
+          </button>
+        </form>
+
+        <div class="load-features-box">
+          <p>¿No aparecen las calles de tu municipio?</p>
+          <button type="button" class="btn-load-idee" (click)="cargarCallesDesdeIDEE()" [disabled]="cargandoCalles">
+            @if (cargandoCalles) {
+              <span>Cargando de CartoCiudad...</span>
+            } @else {
+              <span>📥 Cargar Direcciones de IDEE (RN-MUN-01)</span>
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- LISTA DE ESTACIONES EXISTENTES -->
+      <div class="list-section">
+        <div class="list-header">
+          <h3>Estaciones del Municipio ({{ estaciones.length }})</h3>
+          <button type="button" class="btn-refresh" (click)="cargarEstaciones()">Actualizar</button>
+        </div>
+
+        @if (cargando) {
+          <p class="loading-text">Cargando estaciones...</p>
+        } @else if (estaciones.length === 0) {
+          <div class="empty-box">
+            <p>No hay estaciones registradas aún en {{ usuario?.municipio }}. Utiliza el formulario para ubicar la primera.</p>
+          </div>
+        } @else {
+          <div class="estaciones-cards">
+            @for (est of estaciones; track est.id) {
+              <div class="estacion-item">
+                <div class="estacion-info">
+                  <h4>📍 {{ est.name }} {{ est.number }}</h4>
+                  <span class="est-id">ID #{{ est.id }}</span>
+                </div>
+                <div class="estacion-metrics">
+                  <span class="metric-cap">Capacidad: <strong>{{ est.capacidad }}</strong></span>
+                  <span class="metric-ocupadas">Bicis: <strong>{{ est.bicisOcupadas || 0 }}</strong></span>
+                  <span class="metric-libres">Huecos libres: <strong>{{ est.huecosLibres ?? (est.capacidad - (est.bicisOcupadas || 0)) }}</strong></span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

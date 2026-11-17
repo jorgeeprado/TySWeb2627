@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import * as L from 'leaflet';
 
 import { SimuladorService } from '../services/simulador.service';
@@ -65,9 +66,14 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   private vehiculosService = inject(SimuladorService);
   private vehiculoService = inject(VehiculoService);
   private usuarioService = inject(UsuarioService);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   constructor() { }
+
+  volver(): void {
+    this.router.navigate(['/menu']);
+  }
 
   ngAfterViewInit(): void {
     const usuario = this.usuarioService.getUsuarioActual();

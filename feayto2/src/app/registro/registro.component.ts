@@ -1,19 +1,21 @@
 import { Component, EventEmitter, Output, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { UsuarioService, RegistroResponse } from '../services/usuario.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './registro.component.html',
   styleUrls: ['./registro.component.css']
 })
 export class RegistroComponent {
   private fb = inject(FormBuilder);
   private usuarioService = inject(UsuarioService);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   @Output() cuentaRegistrada = new EventEmitter<string>();
@@ -142,5 +144,6 @@ export class RegistroComponent {
   irAlLogin(): void {
     const emailAUsar = this.ultimoRegistro?.email || this.f['email'].value || '';
     this.cuentaRegistrada.emit(emailAUsar);
+    this.router.navigate(['/login']);
   }
 }

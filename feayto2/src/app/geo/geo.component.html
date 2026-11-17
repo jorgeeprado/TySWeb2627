@@ -1,0 +1,58 @@
+<div class="geo-page-container">
+  <div class="header-nav">
+    <button type="button" class="btn-volver" (click)="volver()">← Volver al Menú</button>
+    <span class="muni-title">Geolocalización · RT-LOC-03 / RT-LOC-04</span>
+  </div>
+
+  <div class="main-card">
+    <h2>Geolocalización del Dispositivo</h2>
+    <p class="subtitle">Componente de geoposicionamiento en tiempo real con soporte para coordenadas de prueba.</p>
+
+    @if (errorGeo && !coordenadas) {
+      <div class="alert alert-warning">
+        <span>ℹ️ {{ errorGeo }}</span>
+      </div>
+    }
+
+    <div class="coords-display-box">
+      <h3>Coordenadas Actuales</h3>
+      <div class="coord-item">
+        <strong>Latitud: </strong>
+        <span>{{ coordenadas?.coords?.latitude ?? 'Buscando satélites...' }}</span>
+      </div>
+      <div class="coord-item">
+        <strong>Longitud: </strong>
+        <span>{{ coordenadas?.coords?.longitude ?? 'Buscando satélites...' }}</span>
+      </div>
+      @if (coordenadas?.coords?.accuracy) {
+        <div class="coord-item-sub">
+          <span>Precisión estimada: ±{{ coordenadas?.coords?.accuracy }} metros</span>
+        </div>
+      }
+    </div>
+
+    <!-- MODO DE PRUEBAS / OVERRIDE MANUAL (RT-LOC-04) -->
+    <div class="manual-override-box">
+      <h4>🧪 Sustituir Coordenadas para Pruebas (RT-LOC-04)</h4>
+      <p class="help-text">Permite simular que te encuentras en cualquier punto o estación municipal sin moverte físicamente:</p>
+
+      <div class="manual-row">
+        <div class="field">
+          <label for="lat-manual">Latitud de Prueba:</label>
+          <input type="number" step="any" id="lat-manual" [(ngModel)]="latManual" placeholder="Ej: 38.9861">
+        </div>
+        <div class="field">
+          <label for="lon-manual">Longitud de Prueba:</label>
+          <input type="number" step="any" id="lon-manual" [(ngModel)]="lonManual" placeholder="Ej: -3.9273">
+        </div>
+      </div>
+
+      <div class="manual-actions">
+        <button type="button" class="btn-apply" (click)="aplicarCoordenadasManuales()">Aplicar Coordenadas</button>
+        @if (modoManual) {
+          <button type="button" class="btn-reset" (click)="restablecerGps()">Restablecer GPS Real</button>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -20,7 +20,7 @@ public class WSConfigurer implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(ws, "/ws").setAllowedOrigins("*")
+        registry.addHandler(ws, "/ws", "/ws2").setAllowedOrigins("*")
                 .addInterceptors(new HttpSessionHandshakeInterceptor());
     }
 }

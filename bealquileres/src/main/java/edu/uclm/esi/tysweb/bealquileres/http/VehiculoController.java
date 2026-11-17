@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import edu.uclm.esi.tysweb.bealquileres.dto.AsignarVehiculoDto;
 import edu.uclm.esi.tysweb.bealquileres.dto.ConfirmarCompraDto;
+import edu.uclm.esi.tysweb.bealquileres.dto.GestionarBicicletaDto;
 import edu.uclm.esi.tysweb.bealquileres.dto.PrerreservaDto;
 import edu.uclm.esi.tysweb.bealquileres.dto.UsuarioAutenticadoDto;
 import edu.uclm.esi.tysweb.bealquileres.dto.VehiculoDto;
@@ -115,8 +116,35 @@ public class VehiculoController {
     }
 
     @GetMapping("/getVehiculos")
-    public List<VehiculoDto> getVehiculos() {
+    @Operation(summary = "Devuelve los vehículos del sistema o los de un municipio concreto")
+    public List<VehiculoDto> getVehiculos(
+            @RequestParam(required = false) String municipio,
+            HttpServletRequest httpRequest) {
+
+        if (municipio == null || municipio.isBlank()) {
+            UsuarioAutenticadoDto usuario = (UsuarioAutenticadoDto) httpRequest.getAttribute("usuarioAutenticado");
+            if (usuario != null && usuario.municipio() != null) {
+                municipio = usuario.municipio();
+            }
+        }
+
+        if (municipio != null && !municipio.isBlank()) {
+            return this.service.getVehiculosPorMunicipio(municipio);
+        }
         return this.service.getVehiculos();
+    }
+
+    // -------------------------------------------------------------------------
+    // RN-BIC-04: Gestión de estado (activa/inactiva) y observaciones ("pinchada", "robada", etc.)
+    // -------------------------------------------------------------------------
+    @PostMapping("/gestionar")
+    @Operation(summary = "Modifica el estado activo y las observaciones de una bicicleta (RN-BIC-04)")
+    public ResponseEntity<VehiculoDto> gestionarBicicleta(@RequestBody GestionarBicicletaDto request) {
+        if (request == null || request.id() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID de vehículo obligatorio");
+        }
+        VehiculoDto dto = this.service.gestionarBicicleta(request.id(), request.activo(), request.observaciones());
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/asignarVehiculos")
@@ -138,5 +166,17 @@ public class VehiculoController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Se requiere el ID de la estación y la cantidad");
         }
         this.service.ubicarEnEstacion(request.estacionId(), request.cantidad());
+    }
+
+    @PostMapping("/ubicarVehiculoEnEstacion")
+    @Operation(summary = "Ubica un vehículo individual en una estación comprobando la capacidad máxima (RC-CON-02, RN-EST-03)")
+    public ResponseEntity<Map<String, Object>> ubicarVehiculoEnEstacion(
+            @RequestParam Long vehiculoId,
+            @RequestParam Long estacionId) {
+        this.service.ubicarVehiculoEnEstacion(vehiculoId, estacionId);
+        return ResponseEntity.ok(Map.of(
+                "status", "OK",
+                "message", "Vehículo " + vehiculoId + " ubicado en la estación " + estacionId
+        ));
     }
 }

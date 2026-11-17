@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, Output, EventEmitter, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { UsuarioService, LoginResponse } from '../services/usuario.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -8,12 +9,13 @@ import { HttpErrorResponse } from '@angular/common/http';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, QRCodeComponent],
+  imports: [CommonModule, FormsModule, QRCodeComponent, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
   private usuarioService = inject(UsuarioService);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   @Output() loginExitoso = new EventEmitter<void>();
@@ -78,6 +80,7 @@ export class LoginComponent implements OnInit {
           this.paso = 'verify2fa';
         } else {
           this.loginExitoso.emit();
+          this.router.navigate(['/menu']);
         }
         this.cdr.markForCheck();
         this.cdr.detectChanges();
@@ -197,6 +200,7 @@ export class LoginComponent implements OnInit {
       next: () => {
         this.loading = false;
         this.loginExitoso.emit();
+        this.router.navigate(['/menu']);
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       },

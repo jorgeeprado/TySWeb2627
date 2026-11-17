@@ -17,6 +17,15 @@ export interface EstacionDto {
   zipCode?: string;
 }
 
+export interface FeatureSimpleDto {
+  id: string;
+  name: string;
+  number: string;
+  latitude?: number;
+  longitude?: number;
+  zipCode?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -26,16 +35,59 @@ export class VehiculoService {
 
   private http = inject(HttpClient);
 
+  // -------------------------------------------------------------------------
+  // RN-COM-04: Precio de referencia de la bicicleta (1200 euros)
+  // -------------------------------------------------------------------------
+  getPrecioDeBicicleta(): Observable<number> {
+    return this.http.get<number>(`${this.urlVehiculos}/getPrecioDeBicicleta`).pipe(
+      timeout(8000)
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // RN-COM-01, RN-COM-02: Prerreserva sincronizada de bicicletas
+  // -------------------------------------------------------------------------
+  prerreservar(municipio: string, cantidad: number): Observable<VehiculoDto[]> {
+    return this.http.post<VehiculoDto[]>(`${this.urlVehiculos}/prerreservar`, {
+      municipio,
+      cantidad
+    }).pipe(timeout(10000));
+  }
+
+  // -------------------------------------------------------------------------
+  // RN-COM-03: Confirmar compra definitiva de bicicletas
+  // -------------------------------------------------------------------------
+  confirmarCompra(municipio: string, cantidad: number): Observable<any> {
+    return this.http.post(`${this.urlVehiculos}/confirmarCompra`, {
+      municipio,
+      cantidad
+    }).pipe(timeout(10000));
+  }
+
   createVehicles(numberOfVehicles: number): Observable<any> {
     return this.http.post(`${this.urlVehiculos}/createVehicles`, numberOfVehicles).pipe(
       timeout(10000)
     );
   }
 
-  getVehiculos(): Observable<VehiculoDto[]> {
-    return this.http.get<VehiculoDto[]>(`${this.urlVehiculos}/getVehiculos`).pipe(
+  getVehiculos(municipio?: string): Observable<VehiculoDto[]> {
+    const url = municipio
+      ? `${this.urlVehiculos}/getVehiculos?municipio=${encodeURIComponent(municipio)}`
+      : `${this.urlVehiculos}/getVehiculos`;
+    return this.http.get<VehiculoDto[]>(url).pipe(
       timeout(8000)
     );
+  }
+
+  // -------------------------------------------------------------------------
+  // RN-BIC-04: Gestión administrativa (activa/inactiva y observaciones)
+  // -------------------------------------------------------------------------
+  gestionarBicicleta(id: number, activo?: boolean, observaciones?: string): Observable<VehiculoDto> {
+    return this.http.post<VehiculoDto>(`${this.urlVehiculos}/gestionar`, {
+      id,
+      activo,
+      observaciones
+    }).pipe(timeout(8000));
   }
 
   asignarVehiculos(municipio: string, cantidad: number): Observable<any> {
@@ -66,6 +118,27 @@ export class VehiculoService {
 
   ubicarEnEstacion(estacionId: number, cantidad: number): Observable<any> {
     return this.http.post(`${this.urlVehiculos}/ubicarEnEstacion`, { estacionId, cantidad }).pipe(
+      timeout(10000)
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // RN-EST-03, RC-CON-02: Ubicar bicicleta individual en estación
+  // -------------------------------------------------------------------------
+  ubicarVehiculoEnEstacion(vehiculoId: number, estacionId: number): Observable<any> {
+    return this.http.post(`${this.urlVehiculos}/ubicarVehiculoEnEstacion?vehiculoId=${vehiculoId}&estacionId=${estacionId}`, {}).pipe(
+      timeout(10000)
+    );
+  }
+
+  getFeatures(municipio: string): Observable<FeatureSimpleDto[]> {
+    return this.http.get<FeatureSimpleDto[]>(`${this.urlMunicipios}/getFeatures?municipio=${encodeURIComponent(municipio)}`).pipe(
+      timeout(10000)
+    );
+  }
+
+  especificarMunicipio(municipio: string): Observable<any> {
+    return this.http.post(`${this.urlMunicipios}/especificar`, { municipio }).pipe(
       timeout(10000)
     );
   }

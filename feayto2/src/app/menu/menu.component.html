@@ -1,0 +1,50 @@
+<div class="menu-page-container">
+  <header class="menu-header">
+    <div class="brand">
+      <div class="logo-icon">🚲</div>
+      <div class="brand-info">
+        <h1>EcoBikes Ayto</h1>
+        <span class="municipio-badge">Ayuntamiento de {{ usuario?.municipio || 'Municipal' }}</span>
+      </div>
+    </div>
+
+    <div class="user-bar">
+      <span class="user-greeting">👤 {{ usuario?.nombre }} ({{ usuario?.email }})</span>
+      <button type="button" class="btn-logout" (click)="logout()">Cerrar Sesión</button>
+    </div>
+  </header>
+
+  <main class="menu-card">
+    <div class="menu-title-block">
+      <h2>Menú de opciones</h2>
+      <p class="subtitle">Panel de control y gestión del sistema de bicicletas para {{ usuario?.municipio }}</p>
+    </div>
+
+    <div class="menu-buttons-grid">
+      <button type="button" class="menu-btn btn-comprar" (click)="navegar('/comprar-bicicletas')">
+        <span class="btn-icon">🛒</span>
+        <span class="btn-text">1 Comprar bicicletas</span>
+      </button>
+
+      <button type="button" class="menu-btn btn-ubicar" (click)="navegar('/ubicar-estacion')">
+        <span class="btn-icon">📍</span>
+        <span class="btn-text">2 Ubicar estación</span>
+      </button>
+
+      <button type="button" class="menu-btn btn-gestionar" (click)="navegar('/gestionar-bicicletas')">
+        <span class="btn-icon">🔧</span>
+        <span class="btn-text">4 Gestionar bicicletas</span>
+      </button>
+
+      <button type="button" class="menu-btn btn-mapa" (click)="navegar('/mapa')">
+        <span class="btn-icon">🗺️</span>
+        <span class="btn-text">5 Consultar mapa</span>
+      </button>
+
+      <button type="button" class="menu-btn btn-crear" (click)="navegar('/crear-vehiculos')">
+        <span class="btn-icon">⚡</span>
+        <span class="btn-text">6 Crear bicicletas</span>
+      </button>
+    </div>
+  </main>
+</div>

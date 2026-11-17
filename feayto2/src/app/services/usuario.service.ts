@@ -112,6 +112,21 @@ export class UsuarioService {
     return this.usuarioSubject.value;
   }
 
+  prepay(cantidad: number, municipio: string, importe?: number): Observable<{ idTransaccion: string }> {
+    return this.http.post<{ idTransaccion: string }>(`${environment.beusuUrl}/payments/prepay`, {
+      cantidad,
+      municipio,
+      importe: importe ?? cantidad * 1200,
+      tipo: 'BICICLETAS'
+    }).pipe(timeout(10000));
+  }
+
+  confirmPayment(idTransaccion: string): Observable<any> {
+    return this.http.post(`${environment.beusuUrl}/payments/confirm`, {
+      idTransaccion
+    }).pipe(timeout(10000));
+  }
+
   checkBackend(url: string): Observable<any> {
     return this.http.get(url, { responseType: 'text' }).pipe(timeout(3500));
   }

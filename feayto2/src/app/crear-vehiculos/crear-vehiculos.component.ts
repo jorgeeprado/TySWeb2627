@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { VehiculoService } from '../services/vehiculo.service';
 import { VehiculoDto } from '../model/VehiculoDto';
 
@@ -22,12 +23,17 @@ export class CrearVehiculosComponent implements OnInit {
   errorMsg: string = '';
 
   private service = inject(VehiculoService);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   constructor() {}
 
   ngOnInit(): void {
     this.getVehiculos();
+  }
+
+  volver(): void {
+    this.router.navigate(['/menu']);
   }
 
   get precioTotal(): number {

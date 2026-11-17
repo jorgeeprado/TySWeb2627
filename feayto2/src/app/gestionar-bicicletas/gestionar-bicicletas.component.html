@@ -1,0 +1,150 @@
+<div class="gestionar-page-container">
+  <div class="header-nav">
+    <button type="button" class="btn-volver" (click)="volver()">← Volver al Menú</button>
+    <span class="muni-title">Gestión de Parque Móvil · {{ usuario?.municipio || 'Municipal' }}</span>
+  </div>
+
+  <div class="main-card">
+    <div class="card-header">
+      <div class="header-titles">
+        <h2>4 Gestionar bicicletas</h2>
+        <p class="subtitle">Administra el estado (activa/inactiva), observaciones ("pinchada", "robada") y ubicación en estaciones (RN-BIC-04, RN-EST-03, RC-CON-02).</p>
+      </div>
+      <button type="button" class="btn-refresh" (click)="cargarDatos()">🔄 Actualizar Flota</button>
+    </div>
+
+    @if (mensaje) {
+      <div class="alert alert-success">
+        <span>✅ {{ mensaje }}</span>
+      </div>
+    }
+
+    @if (error) {
+      <div class="alert alert-error">
+        <span>⚠️ {{ error }}</span>
+      </div>
+    }
+
+    <!-- TABLA DE VEHÍCULOS DE LA FLOTA -->
+    @if (cargando) {
+      <div class="loading-state">
+        <p>Cargando inventario de bicicletas...</p>
+      </div>
+    } @else if (bicicletas.length === 0) {
+      <div class="empty-state">
+        <p>No hay bicicletas asignadas a {{ usuario?.municipio || 'tu municipio' }}. Puedes comprar un lote desde la opción <strong>1 Comprar bicicletas</strong>.</p>
+        <button type="button" class="btn-ir-comprar" (click)="router.navigate(['/comprar-bicicletas'])">Ir a Comprar Bicicletas</button>
+      </div>
+    } @else {
+      <div class="table-container">
+        <table class="flota-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Matrícula</th>
+              <th>Batería</th>
+              <th>Estación Actual</th>
+              <th>Estado</th>
+              <th>Observaciones (RN-BIC-04)</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (bici of bicicletas; track bici.id) {
+              <tr [class.inactivo-row]="!bici.activo">
+                <td>#{{ bici.id }}</td>
+                <td class="col-matricula">
+                  <span class="badge-matricula">🚲 {{ bici.matricula }}</span>
+                </td>
+                <td class="col-bateria">
+                  <div class="battery-bar-wrapper">
+                    <div class="battery-bar" [style.width.%]="bici.bateria" [class.battery-low]="bici.bateria < 20"></div>
+                  </div>
+                  <span class="battery-text">{{ bici.bateria | number:'1.0-0' }}%</span>
+                </td>
+                <td>
+                  @if (bici.estacionNombre) {
+                    <span class="estacion-tag">📍 {{ bici.estacionNombre }}</span>
+                  } @else {
+                    <span class="sin-estacion-tag">En depósito / Sin ubicar</span>
+                  }
+                </td>
+                <td>
+                  <button 
+                    type="button" 
+                    class="btn-toggle-status" 
+                    [class.status-activa]="bici.activo" 
+                    [class.status-inactiva]="!bici.activo"
+                    (click)="conmutarEstado(bici)"
+                    title="Clic para cambiar entre activa e inactiva">
+                    {{ bici.activo ? '● Activa' : '○ Inactiva' }}
+                  </button>
+                </td>
+                <td class="col-observaciones">
+                  <span class="obs-text">{{ bici.observaciones || '—' }}</span>
+                  <button type="button" class="btn-edit-obs" (click)="abrirEditarObservaciones(bici)" title="Editar observaciones">✏️</button>
+                </td>
+                <td class="col-acciones">
+                  <button type="button" class="btn-ubicar-bici" (click)="abrirUbicarEnEstacion(bici)">
+                    📍 Ubicar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- MODAL / FORMULARIO EDICIÓN DE OBSERVACIONES -->
+    @if (biciParaEditarObservaciones) {
+      <div class="modal-overlay">
+        <div class="modal-card">
+          <h3>Observaciones de Bicicleta #{{ biciParaEditarObservaciones.matricula }}</h3>
+          <p class="modal-sub">Especifica incidencias mecánicas o administrativas (ej. <em>pinchada</em>, <em>robada</em>, <em>en taller</em>, <em>revisión de frenos</em>):</p>
+          
+          <div class="form-group">
+            <input 
+              type="text" 
+              [(ngModel)]="textoObservaciones" 
+              placeholder="Ej: pinchada, robada, freno flojo..."
+              class="input-obs">
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="guardarObservaciones()">Guardar</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- MODAL / FORMULARIO UBICAR EN ESTACIÓN -->
+    @if (biciSeleccionadaParaUbicar) {
+      <div class="modal-overlay">
+        <div class="modal-card">
+          <h3>Ubicar Bicicleta #{{ biciSeleccionadaParaUbicar.matricula }} en Estación</h3>
+          <p class="modal-sub">Selecciona la estación donde ubicar la bicicleta. Se verificará que no supere la capacidad máxima (RN-EST-03, RC-CON-02):</p>
+
+          <div class="form-group">
+            <label for="select-estacion">Estación destino:</label>
+            <select id="select-estacion" [(ngModel)]="estacionSeleccionadaId" class="select-estacion">
+              @for (est of estaciones; track est.id) {
+                <option [value]="est.id">
+                  {{ est.name }} {{ est.number }} (Capacidad: {{ est.capacidad }}, Libres: {{ est.huecosLibres ?? (est.capacidad - (est.bicisOcupadas || 0)) }})
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="cancelarUbicacion()" [disabled]="guardando">Cancelar</button>
+            <button type="button" class="btn-save" (click)="confirmarUbicacion()" [disabled]="guardando || !estacionSeleccionadaId">
+              {{ guardando ? 'Ubicando...' : 'Confirmar Ubicación' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

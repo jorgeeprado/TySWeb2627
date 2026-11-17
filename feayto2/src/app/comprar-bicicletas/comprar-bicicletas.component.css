@@ -1,0 +1,209 @@
+.comprar-page-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.btn-volver {
+  background: white;
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-volver:hover {
+  background: #f1f5f9;
+}
+
+.muni-title {
+  font-weight: 600;
+  color: #475569;
+}
+
+.comprar-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.6rem;
+}
+
+.subtitle {
+  color: #64748b;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.alert {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.alert-success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.alert-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.selection-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+}
+
+.field-group label {
+  display: block;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.75rem;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+#numeroDeBicicletas {
+  width: 110px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.6rem;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.multiplier {
+  font-size: 1.1rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.total-badge {
+  background: #eff6ff;
+  border: 2px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 1.3rem;
+  font-weight: 800;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+}
+
+.action-row {
+  margin-top: 1.5rem;
+}
+
+.btn-ir-pago {
+  background: #ea580c;
+  color: white;
+  border: none;
+  padding: 0.85rem 1.75rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-ir-pago:hover:not(:disabled) {
+  background: #c2410c;
+}
+
+.btn-ir-pago:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.payment-container {
+  background: #ffffff;
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.payment-notice h3 {
+  margin-top: 0;
+  color: #1e3a8a;
+}
+
+.payment-notice p {
+  color: #475569;
+  margin-bottom: 1.5rem;
+}
+
+.payment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.stripe-card-element {
+  padding: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.btn-pagar {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 0.9rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-pagar:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.btn-pagar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.card-errors-box {
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

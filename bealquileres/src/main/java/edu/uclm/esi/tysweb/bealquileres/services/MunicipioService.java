@@ -12,6 +12,7 @@ import edu.uclm.esi.tysweb.bealquileres.dao.EstacionDao;
 import edu.uclm.esi.tysweb.bealquileres.dao.FeatureDao;
 import edu.uclm.esi.tysweb.bealquileres.dao.MunicipioDao;
 import edu.uclm.esi.tysweb.bealquileres.dto.FeatureDto;
+import edu.uclm.esi.tysweb.bealquileres.dto.FeatureSimpleDto;
 import edu.uclm.esi.tysweb.bealquileres.model.Estacion;
 import edu.uclm.esi.tysweb.bealquileres.model.Feature;
 import edu.uclm.esi.tysweb.bealquileres.model.Municipio;
@@ -39,9 +40,19 @@ public class MunicipioService {
     }
 
     public void load(String name, Integer offset, Integer limit, Boolean progress) {
-        List<FeatureDto> features = cartoCiudadClient.load(name, offset, limit);
+        // RN-MUN-01: Los puntos de interés del municipio se cargan desde idee.es/CartoCiudad.
+        // Si el municipio ya está cargado previamente, se rechaza con 409 Conflict al intentar volver a cargar desde el inicio.
         Municipio municipio = this.municipioDao.findByName(name);
-        if (municipio==null) {
+        if (municipio != null && (offset == null || offset == 0)) {
+            long existingCount = this.featureDao.countByMunicipioName(name);
+            if (existingCount > 0) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "El municipio " + name + " ya ha sido cargado previamente con sus puntos de interés (RN-MUN-01)");
+            }
+        }
+
+        List<FeatureDto> features = cartoCiudadClient.load(name, offset, limit);
+        if (municipio == null) {
             municipio = new Municipio();
             municipio.setName(name);
             this.municipioDao.save(municipio);
@@ -120,11 +131,46 @@ public class MunicipioService {
         }).toList();
     }
 
+    public Municipio especificarMunicipio(String name) {
+        if (name == null || name.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre de municipio es requerido");
+        }
+        Municipio municipio = this.municipioDao.findByName(name);
+        if (municipio == null) {
+            municipio = new Municipio();
+            municipio.setName(name);
+            return this.municipioDao.save(municipio);
+        }
+        return municipio;
+    }
+
+    public List<FeatureSimpleDto> getFeatures(String municipioName) {
+        return this.featureDao.findByMunicipioName(municipioName).stream()
+                .map(f -> new FeatureSimpleDto(
+                        f.getId(),
+                        f.getName(),
+                        f.getNumber(),
+                        f.getLatitude(),
+                        f.getLongitude(),
+                        f.getZipCode()
+                )).toList();
+    }
+
     public void setEstacion(String municipioName, String name, String number, Integer capacidad) {
         setEstacion(municipioName, name, number, capacidad, null, null, null);
     }
 
     public void setEstacion(String municipioName, String name, String number, Integer capacidad, Double latitude, Double longitude, String zipCode) {
+        if (municipioName == null || municipioName.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El municipio es obligatorio");
+        }
+
+        // RN-EST-02: No puede haber dos estaciones en la misma ubicación del municipio
+        if (estacionDao.findByMunicipioNameAndNameAndNumber(municipioName, name, number).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ya existe una estación en esa dirección (" + name + " " + number + ") en " + municipioName + " (RN-EST-02)");
+        }
+
         Feature feature = featureDao.findByMunicipioNameAndNameAndNumber(municipioName, name, number).orElse(null);
 
         Municipio municipio = this.municipioDao.findByName(municipioName);

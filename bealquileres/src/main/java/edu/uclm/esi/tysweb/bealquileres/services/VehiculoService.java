@@ -148,16 +148,66 @@ public class VehiculoService {
     }
 
     public List<VehiculoDto> getVehiculos() {
-        return vehiculoDao.findAll().stream().map(v -> new VehiculoDto(
-            v.getId(), 
-            v.getMatricula(), 
-            v.getLatitud(), 
-            v.getLongitud(), 
-            v.getDistanciaTotal(), 
-            v.getBateria(), 
-            v.getActivo(), 
-            v.getMunicipio() != null ? v.getMunicipio().getName() : "Sin asignar"
-        )).collect(Collectors.toList());
+        return vehiculoDao.findAll().stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    public List<VehiculoDto> getVehiculosPorMunicipio(String municipio) {
+        if (municipio == null || municipio.isBlank()) {
+            return getVehiculos();
+        }
+        return vehiculoDao.findByMunicipioName(municipio).stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    // -------------------------------------------------------------------------
+    // RN-BIC-04: Gestión administrativa de bicicletas (activa/inactiva y observaciones)
+    // -------------------------------------------------------------------------
+    public synchronized VehiculoDto gestionarBicicleta(Long id, Boolean activo, String observaciones) {
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID de vehículo obligatorio");
+        }
+
+        Vehiculo v = vehiculoDao.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehículo no encontrado: " + id));
+
+        if (activo != null) {
+            v.setActivo(activo);
+        }
+        if (observaciones != null) {
+            v.setObservaciones(observaciones);
+        }
+        vehiculoDao.save(v);
+
+        return toDto(v);
+    }
+
+    // -------------------------------------------------------------------------
+    // RN-EST-03, RC-CON-02: Ubicar bicicleta individual en estación de forma sincronizada
+    // -------------------------------------------------------------------------
+    public synchronized void ubicarVehiculoEnEstacion(Long vehiculoId, Long estacionId) {
+        if (vehiculoId == null || estacionId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vehículo y estación son requeridos");
+        }
+
+        Estacion estacion = estacionDao.findById(estacionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estación no encontrada: " + estacionId));
+
+        int capacidad = estacion.getCapacidad() != null ? estacion.getCapacidad() : 10;
+        int ocupadas = vehiculoDao.countByEstacionId(estacionId);
+
+        Vehiculo v = vehiculoDao.findById(vehiculoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehículo no encontrado: " + vehiculoId));
+
+        // Si el vehículo ya estaba en esta misma estación, no consume hueco extra
+        boolean mismaEstacion = v.getEstacion() != null && v.getEstacion().getId().equals(estacionId);
+        if (!mismaEstacion && ocupadas >= capacidad) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Capacidad máxima de la estación superada. Capacidad: " + capacidad + ", ocupadas: " + ocupadas);
+        }
+
+        v.setEstacion(estacion);
+        v.setLatitud(estacion.getLatitude());
+        v.setLongitud(estacion.getLongitude());
+        vehiculoDao.save(v);
     }
 
     public synchronized void ubicarEnEstacion(Long estacionId, Integer cantidad) {
@@ -193,5 +243,21 @@ public class VehiculoService {
             v.setLongitud(estacion.getLongitude());
             vehiculoDao.save(v);
         }
+    }
+
+    public VehiculoDto toDto(Vehiculo v) {
+        return new VehiculoDto(
+                v.getId(),
+                v.getMatricula(),
+                v.getLatitud(),
+                v.getLongitud(),
+                v.getDistanciaTotal(),
+                v.getBateria(),
+                v.getActivo(),
+                v.getMunicipio() != null ? v.getMunicipio().getName() : "Sin asignar",
+                v.getObservaciones(),
+                v.getEstacion() != null ? v.getEstacion().getId() : null,
+                v.getEstacion() != null ? (v.getEstacion().getName() + " " + v.getEstacion().getNumber()) : null
+        );
     }
 }

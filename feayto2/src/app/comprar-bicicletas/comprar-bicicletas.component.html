@@ -1,0 +1,83 @@
+<div class="comprar-page-container">
+  <div class="header-nav">
+    <button type="button" class="btn-volver" (click)="volver()">← Volver al Menú</button>
+    <span class="muni-title">Compra de Bicicletas · {{ usuario?.municipio || 'Municipal' }}</span>
+  </div>
+
+  <div class="comprar-card">
+    <div class="card-header">
+      <h2>1 Comprar bicicletas</h2>
+      <p class="subtitle">Adquiere nuevas bicicletas eléctricas para la flota municipal a <strong>{{ precio }} euros</strong> por unidad (RN-COM-04).</p>
+    </div>
+
+    @if (mensajeExito) {
+      <div class="alert alert-success">
+        <span class="icon">✅</span>
+        <span>{{ mensajeExito }}</span>
+      </div>
+    }
+
+    @if (errorPago) {
+      <div class="alert alert-error">
+        <span class="icon">⚠️</span>
+        <span>{{ errorPago }}</span>
+      </div>
+    }
+
+    <!-- SELECCIÓN DE CANTIDAD Y CÁLCULO DE PRECIO -->
+    <div class="selection-box">
+      <div class="field-group">
+        <label for="numeroDeBicicletas">Número de bicicletas a comprar:</label>
+        <div class="input-row">
+          <input 
+            type="number" 
+            min="1" 
+            id="numeroDeBicicletas" 
+            name="numeroDeBicicletas"
+            [(ngModel)]="cantidad">
+          <span class="multiplier">× {{ precio }} euros =</span>
+          <span class="total-badge">{{ cantidad * precio }} euros</span>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button type="button" class="btn-ir-pago" (click)="irAlPago()" [disabled]="cargando || !cantidad || cantidad < 1">
+          @if (cargando) {
+            <span>Prerreservando bicis y preparando pago...</span>
+          } @else {
+            <span>Ir al pago</span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENEDOR DE PAGO STRIPE (ID Y SELECTORES EXACTOS DE CLASE) -->
+    <div class="payment-container" [hidden]="!idTransaccion">
+      <div class="payment-notice">
+        <h3>💳 Pasarela de Pago Segura (Stripe)</h3>
+        <p>Introduce tu tarjeta para completar la compra de {{ cantidad }} bicicletas por un total de <strong>{{ cantidad * precio }} euros</strong>.</p>
+      </div>
+
+      <form id="payment-form" class="payment-card">
+        <div class="form-row">
+          <label for="card-element">Tarjeta de crédito / débito</label>
+          <div id="card-element" class="stripe-card-element">
+            <!-- Contenedor montado dinámicamente por Stripe Elements -->
+          </div>
+        </div>
+
+        <button type="button" id="submit-button" class="btn-pagar" (click)="pagar()" [disabled]="pagando">
+          @if (pagando) {
+            <span>Procesando pago con Stripe...</span>
+          } @else {
+            <span>Pagar {{ cantidad * precio }} euros</span>
+          }
+        </button>
+
+        <div id="card-errors" role="alert" class="card-errors-box" [hidden]="!errorPago">
+          {{ errorPago }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

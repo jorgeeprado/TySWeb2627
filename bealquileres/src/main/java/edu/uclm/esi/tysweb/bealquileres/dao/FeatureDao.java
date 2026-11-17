@@ -14,4 +14,5 @@ public interface FeatureDao extends JpaRepository<Feature, String> {
 
     java.util.List<Feature> findByMunicipioName(String municipioName);
 
+    long countByMunicipioName(String municipioName);
 }
