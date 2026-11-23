@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import { VehiculoService } from '../services/vehiculo.service';
 import { VehiculoDto } from '../model/VehiculoDto';
 
@@ -62,10 +63,14 @@ export class CrearVehiculosComponent implements OnInit {
     this.errorMsg = '';
     this.cdr.markForCheck();
 
-    this.service.createVehicles(this.numberOfVehicles).subscribe({
-      next: () => {
+    this.service.createVehicles(this.numberOfVehicles).pipe(
+      finalize(() => {
         this.creating = false;
-        this.successMsg = `¡Pedido tramitado con éxito! Se han adquirido ${this.numberOfVehicles} bicicleta(s) eléctricas (Total: ${this.precioTotal} €) con batería al 100%.`;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: () => {
+        this.successMsg = `¡Stock creado con éxito! Se han dado de alta ${this.numberOfVehicles} bicicleta(s) eléctricas libres sin asignar en el sistema (batería al 100%), listas para compra municipal en la opción 1.`;
         this.cdr.markForCheck();
         this.getVehiculos();
         setTimeout(() => {
@@ -74,8 +79,7 @@ export class CrearVehiculosComponent implements OnInit {
         }, 5000);
       },
       error: (error) => {
-        this.creating = false;
-        this.errorMsg = error?.error?.message || 'Error al tramitar la compra de vehículos en el servidor.';
+        this.errorMsg = error?.error?.message || error?.message || 'Error al crear las bicicletas en el servidor.';
         this.cdr.markForCheck();
       }
     });
@@ -84,17 +88,33 @@ export class CrearVehiculosComponent implements OnInit {
   getVehiculos(): void {
     this.loading = true;
     this.cdr.markForCheck();
-    this.service.getVehiculos().subscribe({
-      next: (ok) => {
+    this.service.getVehiculos().pipe(
+      finalize(() => {
         this.loading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (ok) => {
         this.vehiculos = ok || [];
         this.cdr.markForCheck();
       },
       error: () => {
-        this.loading = false;
+        this.vehiculos = [];
         this.cdr.markForCheck();
       }
     });
+  }
+
+  get totalLibres(): number {
+    return this.vehiculos.filter(v => (!v.municipio || v.municipio === 'Sin asignar') && !v.prerreservada).length;
+  }
+
+  get totalPrerreservadas(): number {
+    return this.vehiculos.filter(v => v.prerreservada || v.estadoAsignacion === 'PRERRESERVADA').length;
+  }
+
+  get totalAsignadas(): number {
+    return this.vehiculos.filter(v => v.municipio && v.municipio !== 'Sin asignar' && !v.prerreservada && v.estadoAsignacion !== 'PRERRESERVADA').length;
   }
 
   get totalActivos(): number {

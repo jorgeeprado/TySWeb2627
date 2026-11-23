@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { finalize } from 'rxjs';
 import { UsuarioService } from '../services/usuario.service';
 import { VehiculoService, EstacionDto } from '../services/vehiculo.service';
 import { VehiculoDto } from '../model/VehiculoDto';
@@ -14,9 +15,10 @@ import { VehiculoDto } from '../model/VehiculoDto';
   styleUrls: ['./gestionar-bicicletas.component.css']
 })
 export class GestionarBicicletasComponent implements OnInit {
-  private router = inject(Router);
+  public router = inject(Router);
   public usuarioService = inject(UsuarioService);
   public vehiculoService = inject(VehiculoService);
+  private cdr = inject(ChangeDetectorRef);
 
   bicicletas: VehiculoDto[] = [];
   estaciones: EstacionDto[] = [];
@@ -42,28 +44,40 @@ export class GestionarBicicletasComponent implements OnInit {
     this.cargarDatos();
   }
 
+  irAComprar(): void {
+    this.router.navigate(['/comprar-bicicletas']);
+  }
+
   cargarDatos(): void {
     const muni = this.usuario?.municipio || 'Ciudad Real';
     this.cargando = true;
     this.error = '';
+    this.cdr.markForCheck();
 
-    this.vehiculoService.getVehiculos(muni).subscribe({
-      next: (b) => {
-        this.bicicletas = b;
+    this.vehiculoService.getVehiculos(muni).pipe(
+      finalize(() => {
         this.cargando = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (b) => {
+        this.bicicletas = b || [];
+        this.cdr.markForCheck();
       },
       error: (err) => {
-        this.cargando = false;
-        this.error = 'No se pudieron cargar las bicicletas del municipio.';
+        this.error = err?.error?.message || err?.message || 'No se pudieron cargar las bicicletas del municipio.';
+        this.cdr.markForCheck();
       }
     });
 
     this.vehiculoService.getEstaciones(muni).subscribe({
       next: (e) => {
-        this.estaciones = e;
+        this.estaciones = e || [];
+        this.cdr.markForCheck();
       },
       error: () => {
         this.estaciones = [];
+        this.cdr.markForCheck();
       }
     });
   }
@@ -77,9 +91,11 @@ export class GestionarBicicletasComponent implements OnInit {
       next: (actualizada) => {
         bici.activo = actualizada.activo;
         this.mensaje = `Bicicleta #${bici.matricula} marcada como ${bici.activo ? 'ACTIVA' : 'INACTIVA'}.`;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.error = err?.error?.message || 'Error al cambiar estado de la bicicleta.';
+        this.cdr.markForCheck();
       }
     });
   }
@@ -90,6 +106,7 @@ export class GestionarBicicletasComponent implements OnInit {
   abrirEditarObservaciones(bici: VehiculoDto): void {
     this.biciParaEditarObservaciones = bici;
     this.textoObservaciones = bici.observaciones || '';
+    this.cdr.markForCheck();
   }
 
   guardarObservaciones(): void {
@@ -101,15 +118,18 @@ export class GestionarBicicletasComponent implements OnInit {
         bici.observaciones = actualizada.observaciones;
         this.mensaje = `Observaciones actualizadas para #${bici.matricula}.`;
         this.biciParaEditarObservaciones = null;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.error = err?.error?.message || 'Error al guardar observaciones.';
+        this.cdr.markForCheck();
       }
     });
   }
 
   cancelarEdicion(): void {
     this.biciParaEditarObservaciones = null;
+    this.cdr.markForCheck();
   }
 
   // -------------------------------------------------------------------------
@@ -118,6 +138,7 @@ export class GestionarBicicletasComponent implements OnInit {
   abrirUbicarEnEstacion(bici: VehiculoDto): void {
     this.biciSeleccionadaParaUbicar = bici;
     this.estacionSeleccionadaId = bici.estacionId || (this.estaciones[0]?.id || null);
+    this.cdr.markForCheck();
   }
 
   confirmarUbicacion(): void {
@@ -130,6 +151,7 @@ export class GestionarBicicletasComponent implements OnInit {
     const estId = this.estacionSeleccionadaId;
     this.guardando = true;
     this.error = '';
+    this.cdr.markForCheck();
 
     this.vehiculoService.ubicarVehiculoEnEstacion(bici.id, estId).subscribe({
       next: () => {
@@ -141,12 +163,14 @@ export class GestionarBicicletasComponent implements OnInit {
       error: (err) => {
         this.guardando = false;
         this.error = err?.error?.message || err?.message || 'No se pudo ubicar la bicicleta en la estación.';
+        this.cdr.markForCheck();
       }
     });
   }
 
   cancelarUbicacion(): void {
     this.biciSeleccionadaParaUbicar = null;
+    this.cdr.markForCheck();
   }
 
   volver(): void {

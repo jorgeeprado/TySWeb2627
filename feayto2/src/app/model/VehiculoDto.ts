@@ -19,4 +19,6 @@ export interface VehiculoDto {
   observaciones?: string;
   estacionId?: number;
   estacionNombre?: string;
+  estadoAsignacion?: string; // 'DISPONIBLE' | 'PRERRESERVADA' | 'ASIGNADA'
+  prerreservada?: boolean;
 }

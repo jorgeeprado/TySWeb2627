@@ -155,7 +155,10 @@ public class VehiculoService {
         if (municipio == null || municipio.isBlank()) {
             return getVehiculos();
         }
-        return vehiculoDao.findByMunicipioName(municipio).stream().map(this::toDto).collect(Collectors.toList());
+        return vehiculoDao.findByMunicipioName(municipio).stream()
+                .filter(v -> !v.isPrerreservada())
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     // -------------------------------------------------------------------------
@@ -257,7 +260,9 @@ public class VehiculoService {
                 v.getMunicipio() != null ? v.getMunicipio().getName() : "Sin asignar",
                 v.getObservaciones(),
                 v.getEstacion() != null ? v.getEstacion().getId() : null,
-                v.getEstacion() != null ? (v.getEstacion().getName() + " " + v.getEstacion().getNumber()) : null
+                v.getEstacion() != null ? (v.getEstacion().getName() + " " + v.getEstacion().getNumber()) : null,
+                v.getEstadoAsignacion(),
+                v.isPrerreservada()
         );
     }
 }

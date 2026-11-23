@@ -33,7 +33,7 @@
     } @else if (bicicletas.length === 0) {
       <div class="empty-state">
         <p>No hay bicicletas asignadas a {{ usuario?.municipio || 'tu municipio' }}. Puedes comprar un lote desde la opción <strong>1 Comprar bicicletas</strong>.</p>
-        <button type="button" class="btn-ir-comprar" (click)="router.navigate(['/comprar-bicicletas'])">Ir a Comprar Bicicletas</button>
+        <button type="button" class="btn-ir-comprar" (click)="irAComprar()">Ir a Comprar Bicicletas</button>
       </div>
     } @else {
       <div class="table-container">

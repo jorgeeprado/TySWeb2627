@@ -148,4 +148,21 @@ public class Vehiculo {
         }
         return this.bateria;
     }
+
+    // RN-COM-02: Vigencia de prerreserva de 30 minutos
+    public boolean isPrerreservada() {
+        if (this.horaDePrerreserva == null) return false;
+        return this.horaDePrerreserva.isAfter(LocalDateTime.now().minusMinutes(30));
+    }
+
+    // Estado administrativo de asignación de la bicicleta
+    public String getEstadoAsignacion() {
+        if (this.municipio == null) {
+            return "DISPONIBLE";
+        }
+        if (isPrerreservada()) {
+            return "PRERRESERVADA";
+        }
+        return "ASIGNADA";
+    }
 }

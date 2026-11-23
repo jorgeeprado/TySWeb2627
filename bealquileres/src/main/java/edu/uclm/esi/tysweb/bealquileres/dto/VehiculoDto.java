@@ -14,11 +14,19 @@ public record VehiculoDto(
         String municipio,
         String observaciones,
         Long estacionId,
-        String estacionNombre
+        String estacionNombre,
+        String estadoAsignacion,
+        Boolean prerreservada
 ) {
     // Constructor de compatibilidad hacia atrás
     public VehiculoDto(Long id, String matricula, Double latitudActual, Double longitudActual,
             Double distanciaTotal, Double bateria, Boolean activo, String municipio) {
-        this(id, matricula, latitudActual, longitudActual, distanciaTotal, bateria, activo, municipio, null, null, null);
+        this(id, matricula, latitudActual, longitudActual, distanciaTotal, bateria, activo, municipio, null, null, null, null, null);
+    }
+
+    public VehiculoDto(Long id, String matricula, Double latitudActual, Double longitudActual,
+            Double distanciaTotal, Double bateria, Boolean activo, String municipio,
+            String observaciones, Long estacionId, String estacionNombre) {
+        this(id, matricula, latitudActual, longitudActual, distanciaTotal, bateria, activo, municipio, observaciones, estacionId, estacionNombre, null, null);
     }
 }
