@@ -20,6 +20,12 @@ public class Vehiculo {
     private int matricula;
     private double kmh;
 
+    // Identificador y destino para el ciclo de alquiler (RN-ALQ-01, RN-ALQ-03)
+    private Long vehiculoId;
+    private Long estacionDestinoId;
+    private double bateria = 100.0;
+    private String bealquileresUrl = "http://localhost:8081";
+
     public Vehiculo(int matricula, Feature origen, Feature destino) {
         this.matricula = matricula;
         this.origen = origen;
@@ -91,6 +97,42 @@ public class Vehiculo {
 
     public int getMatricula() {
         return matricula;
+    }
+
+    public Long getVehiculoId() {
+        return vehiculoId;
+    }
+
+    public void setVehiculoId(Long vehiculoId) {
+        this.vehiculoId = vehiculoId;
+    }
+
+    public Long getEstacionDestinoId() {
+        return estacionDestinoId;
+    }
+
+    public void setEstacionDestinoId(Long estacionDestinoId) {
+        this.estacionDestinoId = estacionDestinoId;
+    }
+
+    public double getBateria() {
+        return bateria;
+    }
+
+    public void setBateria(double bateria) {
+        this.bateria = Math.max(0.0, Math.min(100.0, bateria));
+    }
+
+    public void restarBateria(double consumo) {
+        this.bateria = Math.max(0.0, this.bateria - consumo);
+    }
+
+    public String getBealquileresUrl() {
+        return bealquileresUrl;
+    }
+
+    public void setBealquileresUrl(String bealquileresUrl) {
+        this.bealquileresUrl = bealquileresUrl;
     }
 
     public void arrancar(Runnable onFinish) {

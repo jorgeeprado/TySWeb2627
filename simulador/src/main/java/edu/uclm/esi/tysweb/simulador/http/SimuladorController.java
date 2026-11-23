@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.uclm.esi.tysweb.simulador.dto.GeneracionDto;
+import edu.uclm.esi.tysweb.simulador.dto.MoverVehiculoRequestDto;
 import edu.uclm.esi.tysweb.simulador.dto.MunicipioDto;
 import edu.uclm.esi.tysweb.simulador.dto.PuntoRutaDto;
 import edu.uclm.esi.tysweb.simulador.dto.VehiculoDto;
@@ -19,6 +20,7 @@ import edu.uclm.esi.tysweb.simulador.services.SimuladorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/simulador")
@@ -65,5 +67,11 @@ public class SimuladorController {
     public List<PuntoRutaDto> getRuta(@PathVariable @Parameter(description = "Nombre de la ciudad") String city,
              @RequestParam @Parameter(description = "Matrícula del vehículo") Integer matricula) {
         return this.service.getRuta(city, matricula);
+    }
+
+    @PostMapping("/mover")
+    @Operation(summary = "Inicia el recorrido de una bicicleta alquilada hacia su estación de destino (RN-ALQ-01, RN-BIC-01, RN-BIC-02, RN-ALQ-03)")
+    public boolean mover(@RequestBody MoverVehiculoRequestDto dto) {
+        return this.service.moverVehiculo(dto);
     }
 }

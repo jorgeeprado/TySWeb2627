@@ -31,6 +31,9 @@ public class Vehiculo {
     // Hora en la que se realizó la prerreserva temporal (RN-COM-02: 30 minutos de vigencia)
     private LocalDateTime horaDePrerreserva;
 
+    // Hora en que la bicicleta entró en la estación para cálculo de recarga (RN-BIC-03: 4 horas para 100% = 25%/h)
+    private LocalDateTime horaEntradaEstacion;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "municipio_id", nullable = true)
     private Municipio municipio;
@@ -121,5 +124,28 @@ public class Vehiculo {
 
     public void setEstacion(Estacion estacion) {
         this.estacion = estacion;
+        if (estacion != null) {
+            this.horaEntradaEstacion = LocalDateTime.now();
+        }
+    }
+
+    public LocalDateTime getHoraEntradaEstacion() {
+        return horaEntradaEstacion;
+    }
+
+    public void setHoraEntradaEstacion(LocalDateTime horaEntradaEstacion) {
+        this.horaEntradaEstacion = horaEntradaEstacion;
+    }
+
+    // RN-BIC-03: Una batería al 0% tarda 4 horas en cargarse al 100% mientras está en una estación (25% por hora)
+    public Double getBateriaCalculada() {
+        if (this.estacion != null && this.horaEntradaEstacion != null && this.bateria != null && this.bateria < 100.0) {
+            long segundos = java.time.Duration.between(this.horaEntradaEstacion, LocalDateTime.now()).getSeconds();
+            if (segundos > 0) {
+                double recarga = (segundos / 3600.0) * 25.0;
+                return Math.min(100.0, this.bateria + recarga);
+            }
+        }
+        return this.bateria;
     }
 }

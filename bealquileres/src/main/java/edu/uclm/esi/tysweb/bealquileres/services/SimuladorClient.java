@@ -101,5 +101,46 @@ public class SimuladorClient {
 
         return vehiculos;
     }
+
+    public boolean solicitarMoverVehiculo(
+            Long vehiculoId,
+            String matricula,
+            String municipio,
+            Double origenLat,
+            Double origenLon,
+            String origenNombre,
+            Double destinoLat,
+            Double destinoLon,
+            String destinoNombre,
+            Long estacionDestinoId,
+            Double bateria) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("vehiculoId", vehiculoId);
+            body.put("matricula", matricula);
+            body.put("municipio", municipio != null ? municipio : "Ciudad Real");
+            body.put("origenLat", origenLat != null ? origenLat : 38.9861);
+            body.put("origenLon", origenLon != null ? origenLon : -3.9273);
+            body.put("origenNombre", origenNombre != null ? origenNombre : "Origen");
+            body.put("destinoLat", destinoLat != null ? destinoLat : 38.9861);
+            body.put("destinoLon", destinoLon != null ? destinoLon : -3.9273);
+            body.put("destinoNombre", destinoNombre != null ? destinoNombre : "Destino");
+            body.put("estacionDestinoId", estacionDestinoId);
+            body.put("bateria", bateria != null ? bateria : 100.0);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(this.simuladorUrl + "/simulador/mover"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .timeout(Duration.ofSeconds(4))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            return response.statusCode() == 200;
+        } catch (Exception e) {
+            System.err.println("Aviso: No se pudo contactar con simulador para mover vehículo: " + e.getMessage());
+            return false;
+        }
+    }
 }
 

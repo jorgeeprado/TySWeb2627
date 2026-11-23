@@ -7,5 +7,6 @@ import edu.uclm.esi.tysweb.bealquileres.model.Estacion;
 
 public interface EstacionDao extends JpaRepository<Estacion, Long> {
     List<Estacion> findByMunicipioName(String name);
+    List<Estacion> findByMunicipioId(String municipioId);
     Optional<Estacion> findByMunicipioNameAndNameAndNumber(String municipioName, String name, String number);
 }

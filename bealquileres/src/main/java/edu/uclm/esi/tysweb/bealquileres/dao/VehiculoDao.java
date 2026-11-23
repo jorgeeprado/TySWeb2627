@@ -12,6 +12,7 @@ public interface VehiculoDao extends JpaRepository<Vehiculo, Long> {
     List<Vehiculo> findByMunicipioIsNull();
     List<Vehiculo> findByMunicipioName(String name);
     List<Vehiculo> findByEstacionId(Long estacionId);
+    List<Vehiculo> findByEstacionIdAndActivoTrue(Long estacionId);
     int countByEstacionId(Long estacionId);
     List<Vehiculo> findByMunicipioNameAndEstacionIsNull(String name);
 
