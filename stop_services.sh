@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "=== DETENIENDO TODOS LOS SERVICIOS ==="
-for port in 8080 8081 8082 4200; do
+for port in 8080 8081 8082 4200 4201; do
     pid=$(lsof -ti:$port)
     if [ -n "$pid" ]; then
         echo "Deteniendo proceso en puerto $port (PID: $pid)..."
@@ -10,4 +10,3 @@ for port in 8080 8081 8082 4200; do
     fi
 done
 echo "=== TODOS LOS SERVICIOS DETENIDOS ==="
-

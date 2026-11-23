@@ -2,7 +2,7 @@
 PROJECT_DIR="/home/jorge/Escritorio/PROYECTO TySW/TySWeb2627"
 
 echo "=== DETENIENDO SERVICIOS ANTERIORES ==="
-for port in 8080 8081 8082 4200; do
+for port in 8080 8081 8082 4200 4201; do
     pid=$(lsof -ti:$port 2>/dev/null)
     if [ -n "$pid" ]; then
         echo "Cerrando proceso en puerto $port (PID: $pid)..."
@@ -32,8 +32,12 @@ echo "Iniciando bealquileres (8081)..."
 echo "Iniciando simulador (8082)..."
 (cd "$PROJECT_DIR/simulador" && nohup ./mvnw spring-boot:run > "$PROJECT_DIR/simulador.log" 2>&1 & disown)
 
-# 4. feayto2 (puerto 4200)
+# 4. feayto2 (puerto 4200 - Frontend Ayuntamiento)
 echo "Iniciando feayto2 (4200)..."
 (cd "$PROJECT_DIR/feayto2" && nohup env CI=true HOME=/tmp NG_CLI_ANALYTICS=false ./node_modules/.bin/ng serve --host 0.0.0.0 --port 4200 > "$PROJECT_DIR/feayto2.log" 2>&1 & disown)
 
-echo "=== TODOS LOS SERVICIOS LANZADOS EN SEGUNDO PLANO ==="
+# 5. feus (puerto 4201 - Frontend Ciudadano)
+echo "Iniciando feus (4201)..."
+(cd "$PROJECT_DIR/feus" && nohup env CI=true HOME=/tmp NG_CLI_ANALYTICS=false ./node_modules/.bin/ng serve --host 0.0.0.0 --port 4201 > "$PROJECT_DIR/feus.log" 2>&1 & disown)
+
+echo "=== TODOS LOS SERVIDORES LANZADOS EN SEGUNDO PLANO ==="
